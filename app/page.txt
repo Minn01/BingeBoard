@@ -1,0 +1,552 @@
+'use client'
+import React, { useState, useEffect } from 'react';
+import { Search, Star, Plus, Eye, Clock, Heart, User, Home, List, LogOut, Filter } from 'lucide-react';
+
+const mockUser = {
+    username: "moviefan123",
+    email: "user@example.com",
+    favoriteGenres: ["Action", "Drama", "Sci-Fi"]
+};
+
+const mockMovies = [
+    {
+        id: 1,
+        title: "The Dark Knight",
+        poster_path: "/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
+        release_date: "2008-07-18",
+        vote_average: 9.0,
+        genre_ids: [28, 18, 80],
+        overview: "Batman raises the stakes in his war on crime with the help of Lt. Jim Gordon and Harvey Dent.",
+        userStatus: "watched",
+        userRating: 9
+    },
+    {
+        id: 2,
+        title: "Breaking Bad",
+        poster_path: "/ggFHVNu6YYI5L9pCfOacjizRGt.jpg",
+        release_date: "2008-01-20",
+        vote_average: 9.5,
+        genre_ids: [18, 80],
+        overview: "A high school chemistry teacher turned methamphetamine producer.",
+        userStatus: "watching",
+        userRating: null,
+        episodesWatched: 15,
+        totalEpisodes: 62
+    },
+    {
+        id: 3,
+        title: "Inception",
+        poster_path: "/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg",
+        release_date: "2010-07-16",
+        vote_average: 8.8,
+        genre_ids: [28, 878, 53],
+        overview: "A thief who steals corporate secrets through dream-sharing technology.",
+        userStatus: "want_to_watch",
+        userRating: null
+    }
+];
+
+const genres = {
+    28: "Action", 18: "Drama", 80: "Crime", 878: "Science Fiction", 53: "Thriller"
+};
+
+function BingeBoard() {
+    const [currentPage, setCurrentPage] = useState('dashboard');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedMovie, setSelectedMovie] = useState(null);
+    const [user, setUser] = useState(mockUser);
+    const [isLoggedIn, setIsLoggedIn] = useState(true);
+
+    const StarRating = ({ rating, onRate, interactive = false }) => {
+        const [hover, setHover] = useState(0);
+
+        return (
+            <div className="flex">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((star) => (
+                    <Star
+                        key={star}
+                        className={`w-4 h-4 cursor-pointer ${star <= (hover || rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+                            }`}
+                        onMouseEnter={() => interactive && setHover(star)}
+                        onMouseLeave={() => interactive && setHover(0)}
+                        onClick={() => interactive && onRate && onRate(star)}
+                    />
+                ))}
+                <span className="ml-2 text-sm text-gray-600">{rating || 'Not rated'}</span>
+            </div>
+        );
+    };
+
+    const MovieCard = ({ movie }) => (
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+            <div className="relative">
+                <img
+                    src={movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : '/api/placeholder/300/450'}
+                    alt={movie.title}
+                    className="w-full h-72 object-cover"
+                />
+                <div className="absolute top-2 right-2">
+                    {movie.userStatus && (
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${movie.userStatus === 'watched' ? 'bg-green-100 text-green-800' :
+                                movie.userStatus === 'watching' ? 'bg-blue-100 text-blue-800' :
+                                    movie.userStatus === 'want_to_watch' ? 'bg-yellow-100 text-yellow-800' :
+                                        'bg-gray-100 text-gray-800'
+                            }`}>
+                            {movie.userStatus === 'want_to_watch' ? 'Want to Watch' :
+                                movie.userStatus.charAt(0).toUpperCase() + movie.userStatus.slice(1)}
+                        </span>
+                    )}
+                </div>
+            </div>
+            <div className="p-4">
+                <h3 className="font-bold text-lg mb-2 line-clamp-2">{movie.title}</h3>
+                <p className="text-gray-600 text-sm mb-2">{new Date(movie.release_date).getFullYear()}</p>
+                <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center">
+                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 mr-1" />
+                        <span className="text-sm">{movie.vote_average}</span>
+                    </div>
+                    {movie.userRating && (
+                        <div className="flex items-center">
+                            <span className="text-xs text-gray-500 mr-1">You:</span>
+                            <Star className="w-3 h-3 fill-blue-400 text-blue-400 mr-1" />
+                            <span className="text-sm">{movie.userRating}</span>
+                        </div>
+                    )}
+                </div>
+                {movie.episodesWatched && (
+                    <div className="mb-3">
+                        <div className="flex justify-between text-xs text-gray-500 mb-1">
+                            <span>Progress</span>
+                            <span>{movie.episodesWatched}/{movie.totalEpisodes}</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                                className="bg-blue-500 h-2 rounded-full"
+                                style={{ width: `${(movie.episodesWatched / movie.totalEpisodes) * 100}%` }}
+                            ></div>
+                        </div>
+                    </div>
+                )}
+                <div className="flex gap-2">
+                    <button
+                        className="flex-1 bg-blue-600 text-white py-2 px-3 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                        onClick={() => setSelectedMovie(movie)}
+                    >
+                        View Details
+                    </button>
+                    <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        <Plus className="w-4 h-4" />
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+
+    const Header = () => (
+        <header className="bg-gradient-to-r from-blue-900 to-purple-900 text-white shadow-lg">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex justify-between items-center py-4">
+                    <div className="flex items-center">
+                        <h1 className="text-2xl font-bold">BingeBoard</h1>
+                    </div>
+
+                    <div className="flex-1 max-w-lg mx-8">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                            <input
+                                type="text"
+                                placeholder="Search movies and TV shows..."
+                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex items-center space-x-4">
+                        <nav className="flex space-x-6">
+                            <button
+                                onClick={() => setCurrentPage('dashboard')}
+                                className={`flex items-center space-x-1 hover:text-blue-200 ${currentPage === 'dashboard' ? 'text-blue-200' : ''}`}
+                            >
+                                <Home className="w-4 h-4" />
+                                <span>Dashboard</span>
+                            </button>
+                            <button
+                                onClick={() => setCurrentPage('browse')}
+                                className={`flex items-center space-x-1 hover:text-blue-200 ${currentPage === 'browse' ? 'text-blue-200' : ''}`}
+                            >
+                                <Search className="w-4 h-4" />
+                                <span>Browse</span>
+                            </button>
+                            <button
+                                onClick={() => setCurrentPage('watchlist')}
+                                className={`flex items-center space-x-1 hover:text-blue-200 ${currentPage === 'watchlist' ? 'text-blue-200' : ''}`}
+                            >
+                                <List className="w-4 h-4" />
+                                <span>My List</span>
+                            </button>
+                        </nav>
+
+                        <div className="flex items-center space-x-2">
+                            <User className="w-6 h-6" />
+                            <span className="font-medium">{user.username}</span>
+                            <button className="ml-2 hover:text-blue-200">
+                                <LogOut className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+    );
+
+    const Dashboard = () => (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="mb-8">
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome back, {user.username}!</h2>
+                <p className="text-gray-600">Continue your movie and TV journey</p>
+            </div>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div className="bg-white rounded-lg shadow p-6">
+                    <div className="flex items-center">
+                        <Eye className="h-8 w-8 text-blue-600" />
+                        <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-500">Watched</p>
+                            <p className="text-2xl font-bold text-gray-900">42</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="bg-white rounded-lg shadow p-6">
+                    <div className="flex items-center">
+                        <Clock className="h-8 w-8 text-yellow-600" />
+                        <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-500">Watching</p>
+                            <p className="text-2xl font-bold text-gray-900">3</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="bg-white rounded-lg shadow p-6">
+                    <div className="flex items-center">
+                        <List className="h-8 w-8 text-green-600" />
+                        <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-500">Want to Watch</p>
+                            <p className="text-2xl font-bold text-gray-900">15</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="bg-white rounded-lg shadow p-6">
+                    <div className="flex items-center">
+                        <Heart className="h-8 w-8 text-red-600" />
+                        <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-500">Favorites</p>
+                            <p className="text-2xl font-bold text-gray-900">8</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Continue Watching */}
+            <div className="mb-8">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Continue Watching</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {mockMovies.filter(m => m.userStatus === 'watching').map(movie => (
+                        <MovieCard key={movie.id} movie={movie} />
+                    ))}
+                </div>
+            </div>
+
+            {/* Trending This Week */}
+            <div>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Trending This Week</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {mockMovies.map(movie => (
+                        <MovieCard key={movie.id} movie={movie} />
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+
+    const BrowsePage = () => (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="flex gap-8">
+                {/* Filters Sidebar */}
+                <div className="w-64 flex-shrink-0">
+                    <div className="bg-white rounded-lg shadow p-6 sticky top-8">
+                        <h3 className="font-bold text-gray-900 mb-4 flex items-center">
+                            <Filter className="w-4 h-4 mr-2" />
+                            Filters
+                        </h3>
+
+                        <div className="mb-6">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                            <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                <option value="">All</option>
+                                <option value="movie">Movies</option>
+                                <option value="tv">TV Shows</option>
+                            </select>
+                        </div>
+
+                        <div className="mb-6">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Genre</label>
+                            <div className="space-y-2 max-h-48 overflow-y-auto">
+                                {Object.values(genres).map(genre => (
+                                    <label key={genre} className="flex items-center">
+                                        <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                                        <span className="ml-2 text-sm">{genre}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="mb-6">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Release Year</label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="number"
+                                    placeholder="From"
+                                    className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                                />
+                                <input
+                                    type="number"
+                                    placeholder="To"
+                                    className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                                />
+                            </div>
+                        </div>
+
+                        <button className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            Apply Filters
+                        </button>
+                    </div>
+                </div>
+
+                {/* Main Content */}
+                <div className="flex-1">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-2xl font-bold text-gray-900">Browse Movies & TV Shows</h2>
+                        <select className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                            <option>Sort by Popularity</option>
+                            <option>Sort by Rating</option>
+                            <option>Sort by Release Date</option>
+                            <option>Sort by Title</option>
+                        </select>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {mockMovies.map(movie => (
+                            <MovieCard key={movie.id} movie={movie} />
+                        ))}
+                    </div>
+
+                    {/* Pagination */}
+                    <div className="mt-8 flex justify-center">
+                        <nav className="flex items-center space-x-2">
+                            <button className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700">Previous</button>
+                            <button className="px-3 py-2 text-sm bg-blue-600 text-white rounded">1</button>
+                            <button className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700">2</button>
+                            <button className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700">3</button>
+                            <button className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700">Next</button>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
+    const WatchlistPage = () => (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-8">My Watchlist</h2>
+
+            {/* Status Tabs */}
+            <div className="border-b border-gray-200 mb-8">
+                <nav className="flex space-x-8">
+                    {['All', 'Watched', 'Watching', 'Want to Watch'].map(tab => (
+                        <button
+                            key={tab}
+                            className={`py-2 px-1 border-b-2 font-medium text-sm ${tab === 'All'
+                                    ? 'border-blue-500 text-blue-600'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                }`}
+                        >
+                            {tab}
+                        </button>
+                    ))}
+                </nav>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {mockMovies.map(movie => (
+                    <MovieCard key={movie.id} movie={movie} />
+                ))}
+            </div>
+        </div>
+    );
+
+    const MovieDetail = ({ movie, onClose }) => (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="relative">
+                    <button
+                        onClick={onClose}
+                        className="absolute top-4 right-4 bg-black bg-opacity-50 text-white rounded-full p-2 hover:bg-opacity-70"
+                    >
+                        ×
+                    </button>
+                    <img
+                        src={movie.poster_path ? `https://image.tmdb.org/t/p/w1280${movie.poster_path}` : '/api/placeholder/800/400'}
+                        alt={movie.title}
+                        className="w-full h-64 object-cover"
+                    />
+                </div>
+
+                <div className="p-6">
+                    <div className="flex justify-between items-start mb-4">
+                        <div>
+                            <h2 className="text-3xl font-bold text-gray-900 mb-2">{movie.title}</h2>
+                            <p className="text-gray-600">{new Date(movie.release_date).getFullYear()}</p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                            <span className="font-semibold">{movie.vote_average}</span>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 mb-4">
+                        {movie.genre_ids.map(genreId => (
+                            <span key={genreId} className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm">
+                                {genres[genreId]}
+                            </span>
+                        ))}
+                    </div>
+
+                    <p className="text-gray-700 mb-6 leading-relaxed">{movie.overview}</p>
+
+                    {/* User Actions */}
+                    <div className="border-t pt-6">
+                        <h3 className="font-bold text-gray-900 mb-4">Your Rating & Status</h3>
+
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                            <select className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                                <option value="">Add to list...</option>
+                                <option value="want_to_watch">Want to Watch</option>
+                                <option value="watching">Currently Watching</option>
+                                <option value="watched">Watched</option>
+                                <option value="dropped">Dropped</option>
+                            </select>
+                        </div>
+
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Your Rating</label>
+                            <StarRating rating={movie.userRating} interactive={true} />
+                        </div>
+
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Review</label>
+                            <textarea
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                                rows={4}
+                                placeholder="Share your thoughts about this movie/show..."
+                            />
+                            <div className="mt-2">
+                                <label className="flex items-center">
+                                    <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                                    <span className="ml-2 text-sm text-gray-600">Contains spoilers</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button className="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors">
+                                Save
+                            </button>
+                            <button className="border border-gray-300 py-2 px-6 rounded-lg hover:bg-gray-50 transition-colors">
+                                Add to Favorites
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
+    const LoginPage = () => (
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-purple-900">
+            <div className="max-w-md w-full space-y-8 p-8">
+                <div className="text-center">
+                    <h1 className="text-4xl font-bold text-white mb-2">BingeBoard</h1>
+                    <p className="text-blue-200">Track your movie and TV journey</p>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-xl p-8">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Sign In</h2>
+
+                    <div className="space-y-6">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                            <input
+                                type="email"
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="your@email.com"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                            <input
+                                type="password"
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="••••••••"
+                            />
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={() => setIsLoggedIn(true)}
+                            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                        >
+                            Sign In
+                        </button>
+                    </div>
+
+                    <div className="mt-6 text-center">
+                        <p className="text-sm text-gray-600">
+                            Don't have an account?
+                            <button className="text-blue-600 hover:text-blue-500 ml-1 font-medium">
+                                Sign up
+                            </button>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
+    if (!isLoggedIn) {
+        return <LoginPage />;
+    }
+
+    return (
+        <div className="min-h-screen bg-gray-50">
+            <Header />
+
+            {currentPage === 'dashboard' && <Dashboard />}
+            {currentPage === 'browse' && <BrowsePage />}
+            {currentPage === 'watchlist' && <WatchlistPage />}
+
+            {selectedMovie && (
+                <MovieDetail
+                    movie={selectedMovie}
+                    onClose={() => setSelectedMovie(null)}
+                />
+            )}
+        </div>
+    );
+}
+
+export default BingeBoard;
