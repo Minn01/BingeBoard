@@ -1,98 +1,227 @@
-import { Filter, List, User } from "lucide-react"
+'use client'
+
+import { Filter, Loader2 } from "lucide-react"
 import MovieCard from "../components/MovieCard"
+import Movie from "../types/Movie"
+import MovieDetail from "../components/MovieDetail"
+import { useState, useEffect, useCallback } from "react"
+import { tmdbApi, tmdbToMovie, TMDBMovie } from "../../lib/tmdb"
 
-const mockMovies = [
-    {
-        id: 1,
-        title: "The Dark Knight",
-        poster_path: "/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
-        release_date: "2008-07-18",
-        vote_average: 9.0,
-        genre_ids: [28, 18, 80],
-        overview: "Batman raises the stakes in his war on crime with the help of Lt. Jim Gordon and Harvey Dent.",
-        userStatus: "watched",
-        userRating: 9
-    },
-    {
-        id: 2,
-        title: "Breaking Bad",
-        poster_path: "/ggFHVNu6YYI5L9pCfOacjizRGt.jpg",
-        release_date: "2008-01-20",
-        vote_average: 9.5,
-        genre_ids: [18, 80],
-        overview: "A high school chemistry teacher turned methamphetamine producer.",
-        userStatus: "watching",
-        userRating: null,
-        episodesWatched: 15,
-        totalEpisodes: 62
-    },
-    {
-        id: 3,
-        title: "Inception",
-        poster_path: "/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg",
-        release_date: "2010-07-16",
-        vote_average: 8.8,
-        genre_ids: [28, 878, 53],
-        overview: "A thief who steals corporate secrets through dream-sharing technology.",
-        userStatus: "want_to_watch",
-        userRating: null
-    }
-];
-
-const genres = {
-    28: "Action", 18: "Drama", 80: "Crime", 878: "Science Fiction", 53: "Thriller"
+const genres: { [key: number]: string } = {
+  28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy", 80: "Crime", 
+  99: "Documentary", 18: "Drama", 10751: "Family", 14: "Fantasy", 36: "History",
+  27: "Horror", 10402: "Music", 9648: "Mystery", 10749: "Romance", 878: "Science Fiction",
+  10770: "TV Movie", 53: "Thriller", 10752: "War", 37: "Western"
 };
 
 function BrowsePage() {
+    const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+    const [movies, setMovies] = useState<Movie[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [contentType, setContentType] = useState<'all' | 'movie' | 'tv'>('all');
+    const [sortBy, setSortBy] = useState<'popularity' | 'rating' | 'release_date' | 'title'>('popularity');
+
+    const fetchMovies = useCallback(async (page: number = 1, search: string = '') => {
+        setLoading(true);
+        try {
+            let response;
+            
+            if (search.trim()) {
+                // Search functionality
+                if (contentType === 'movie') {
+                    response = await tmdbApi.searchMovies(search, page);
+                } else if (contentType === 'tv') {
+                    response = await tmdbApi.searchTVShows(search, page);
+                } else {
+                    response = await tmdbApi.searchMulti(search, page);
+                }
+            } else {
+                // Popular content
+                if (contentType === 'movie') {
+                    response = await tmdbApi.getPopularMovies(page);
+                } else if (contentType === 'tv') {
+                    response = await tmdbApi.getPopularTVShows(page);
+                } else {
+                    // Get trending for 'all' option
+                    response = await tmdbApi.getTrending('week', page);
+                }
+            }
+
+            const convertedMovies = response.results.map(tmdbToMovie);
+            
+            // Apply sorting
+            const sortedMovies = sortMovies(convertedMovies, sortBy);
+            
+            setMovies(sortedMovies);
+            setTotalPages(response.total_pages);
+        } catch (error) {
+            console.error('Error fetching movies:', error);
+            setMovies([]);
+        } finally {
+            setLoading(false);
+        }
+    }, [contentType, sortBy]);
+
+    const sortMovies = (movieList: Movie[], sortType: string): Movie[] => {
+        return [...movieList].sort((a, b) => {
+            switch (sortType) {
+                case 'rating':
+                    return b.vote_average - a.vote_average;
+                case 'release_date':
+                    return new Date(b.release_date).getTime() - new Date(a.release_date).getTime();
+                case 'title':
+                    return a.title.localeCompare(b.title);
+                case 'popularity':
+                default:
+                    return 0; // TMDB already returns by popularity
+            }
+        });
+    };
+
+    // Debounced search
+    useEffect(() => {
+        const delayedSearch = setTimeout(() => {
+            setCurrentPage(1);
+            fetchMovies(1, searchQuery);
+        }, 500);
+
+        return () => clearTimeout(delayedSearch);
+    }, [searchQuery, contentType, sortBy, fetchMovies]);
+
+    // Load more when page changes
+    useEffect(() => {
+        if (currentPage > 1) {
+            fetchMovies(currentPage, searchQuery);
+        }
+    }, [currentPage, fetchMovies, searchQuery]);
+
+    // Initial load
+    useEffect(() => {
+        fetchMovies();
+    }, [fetchMovies]);
+
+    const handleViewDetails = (movie: Movie) => {
+        setSelectedMovie(movie);
+    };
+
+    const handleCloseDetails = () => {
+        setSelectedMovie(null);
+    };
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const renderPagination = () => {
+        const maxPagesToShow = 5;
+        const startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+        const endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+        
+        const pages = [];
+        for (let i = startPage; i <= endPage; i++) {
+            pages.push(i);
+        }
+
+        return (
+            <div className="mt-8 flex justify-center">
+                <nav className="flex items-center space-x-2">
+                    <button 
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Previous
+                    </button>
+                    
+                    {pages.map(page => (
+                        <button
+                            key={page}
+                            onClick={() => handlePageChange(page)}
+                            className={`px-3 py-2 text-sm rounded ${
+                                page === currentPage 
+                                    ? 'bg-blue-600 text-white' 
+                                    : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                        >
+                            {page}
+                        </button>
+                    ))}
+                    
+                    <button 
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Next
+                    </button>
+                </nav>
+            </div>
+        );
+    };
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex gap-8">
                 {/* Filters Sidebar */}
                 <div className="w-64 flex-shrink-0">
-                    <div className="bg-white rounded-lg shadow p-6 sticky top-8">
+                    <div className="bg-white rounded-lg shadow p-6 sticky top-24">
                         <h3 className="font-bold text-gray-900 mb-4 flex items-center">
                             <Filter className="w-4 h-4 mr-2" />
                             Filters
                         </h3>
 
+                        {/* Search Input */}
+                        <div className="mb-6">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Search movies & shows..."
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                        </div>
+
+                        {/* Content Type Filter */}
                         <div className="mb-6">
                             <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
-                            <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
-                                <option value="">All</option>
+                            <select 
+                                value={contentType}
+                                onChange={(e) => setContentType(e.target.value as 'all' | 'movie' | 'tv')}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="all">All</option>
                                 <option value="movie">Movies</option>
                                 <option value="tv">TV Shows</option>
                             </select>
                         </div>
 
+                        {/* Sort Options */}
                         <div className="mb-6">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Genre</label>
-                            <div className="space-y-2 max-h-48 overflow-y-auto">
-                                {Object.values(genres).map(genre => (
-                                    <label key={genre} className="flex items-center">
-                                        <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                                        <span className="ml-2 text-sm">{genre}</span>
-                                    </label>
-                                ))}
-                            </div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+                            <select 
+                                value={sortBy}
+                                onChange={(e) => setSortBy(e.target.value as any)}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="popularity">Popularity</option>
+                                <option value="rating">Rating</option>
+                                <option value="release_date">Release Date</option>
+                                <option value="title">Title</option>
+                            </select>
                         </div>
 
-                        <div className="mb-6">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Release Year</label>
-                            <div className="flex gap-2">
-                                <input
-                                    type="number"
-                                    placeholder="From"
-                                    className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
-                                />
-                                <input
-                                    type="number"
-                                    placeholder="To"
-                                    className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
-                                />
-                            </div>
-                        </div>
-
-                        <button className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        <button 
+                            onClick={() => {
+                                setCurrentPage(1);
+                                fetchMovies(1, searchQuery);
+                            }}
+                            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                        >
                             Apply Filters
                         </button>
                     </div>
@@ -101,33 +230,54 @@ function BrowsePage() {
                 {/* Main Content */}
                 <div className="flex-1">
                     <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-2xl font-bold text-gray-900">Browse Movies & TV Shows</h2>
-                        <select className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
-                            <option>Sort by Popularity</option>
-                            <option>Sort by Rating</option>
-                            <option>Sort by Release Date</option>
-                            <option>Sort by Title</option>
-                        </select>
+                        <div>
+                            <h2 className="text-2xl font-bold text-gray-900">
+                                {searchQuery ? `Search Results for "${searchQuery}"` : 
+                                 contentType === 'all' ? 'Trending Movies & TV Shows' :
+                                 contentType === 'movie' ? 'Popular Movies' : 'Popular TV Shows'}
+                            </h2>
+                            <p className="text-gray-600 mt-1">
+                                Page {currentPage} of {totalPages} • {movies.length} results
+                            </p>
+                        </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {mockMovies.map(movie => (
-                            <MovieCard key={movie.id} movie={movie} />
-                        ))}
-                    </div>
+                    {loading ? (
+                        <div className="flex justify-center items-center h-64">
+                            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                            <span className="ml-2 text-gray-600">Loading movies...</span>
+                        </div>
+                    ) : movies.length === 0 ? (
+                        <div className="text-center py-12">
+                            <p className="text-gray-500 text-lg">No movies found.</p>
+                            <p className="text-gray-400 text-sm mt-2">Try adjusting your search or filters.</p>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                {movies.map(movie => (
+                                    <MovieCard 
+                                        key={movie.id} 
+                                        movie={movie} 
+                                        onViewDetails={handleViewDetails}
+                                    />
+                                ))}
+                            </div>
 
-                    {/* Pagination */}
-                    <div className="mt-8 flex justify-center">
-                        <nav className="flex items-center space-x-2">
-                            <button className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700">Previous</button>
-                            <button className="px-3 py-2 text-sm bg-blue-600 text-white rounded">1</button>
-                            <button className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700">2</button>
-                            <button className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700">3</button>
-                            <button className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700">Next</button>
-                        </nav>
-                    </div>
+                            {totalPages > 1 && renderPagination()}
+                        </>
+                    )}
                 </div>
             </div>
+
+            {/* Movie Detail Modal */}
+            {selectedMovie && (
+                <MovieDetail
+                    movie={selectedMovie}
+                    genres={genres}
+                    onClose={handleCloseDetails}
+                />
+            )}
         </div>
     )
 }

@@ -3,20 +3,20 @@
 import Header from "./Header"
 import { usePathname } from "next/navigation";
 
+interface LayoutClientProps {
+    children: React.ReactNode;
+}
+
 export default function LayoutClient({ children }: LayoutClientProps) {
-    const pathName = usePathname();
-    const isAuthRoute = ['/login', '/signup'].includes(pathName) 
+    const pathname = usePathname();
+    const isAuthRoute = ['/login', '/signup'].includes(pathname);
 
     return (
         <>
             {!isAuthRoute && <Header />}
-            <main className={isAuthRoute ? '' : 'pt-[74px]'}>
+            <main className={isAuthRoute ? '' : 'pt-20'}>
                 {children}
             </main>
         </>
     );
-}
-
-type LayoutClientProps = {
-    children: React.ReactNode;
 }

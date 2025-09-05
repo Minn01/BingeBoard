@@ -1,5 +1,9 @@
+'use client'
+
 import Movie from "../types/Movie"
 import MovieCard from "../components/MovieCard"
+import MovieDetail from "../components/MovieDetail"
+import { useState } from "react"
 
 const mockMovies: Movie[] = [
     {
@@ -22,7 +26,7 @@ const mockMovies: Movie[] = [
         genre_ids: [18, 80],
         overview: "A high school chemistry teacher...",
         userStatus: "watching",
-        userRating: null,
+        userRating: undefined,
         episodesWatched: 15,
         totalEpisodes: 62
     },
@@ -35,11 +39,25 @@ const mockMovies: Movie[] = [
         genre_ids: [28, 878, 53],
         overview: "A thief who steals corporate secrets...",
         userStatus: "want_to_watch",
-        userRating: null
+        userRating: undefined
     }
 ];
 
+const genres: { [key: number]: string } = {
+    28: "Action", 18: "Drama", 80: "Crime", 878: "Science Fiction", 53: "Thriller"
+};
+
 function MyListPage() {
+    const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+
+    const handleViewDetails = (movie: Movie) => {
+        setSelectedMovie(movie);
+    };
+
+    const handleCloseDetails = () => {
+        setSelectedMovie(null);
+    };
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-8">My Watchlist</h2>
@@ -63,9 +81,22 @@ function MyListPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {mockMovies.map(movie => (
-                    <MovieCard key={movie.id} movie={movie} />
+                    <MovieCard 
+                        key={movie.id} 
+                        movie={movie} 
+                        onViewDetails={handleViewDetails}
+                    />
                 ))}
             </div>
+
+            {/* Movie Detail Modal */}
+            {selectedMovie && (
+                <MovieDetail
+                    movie={selectedMovie}
+                    genres={genres}
+                    onClose={handleCloseDetails}
+                />
+            )}
         </div>
     )
 }

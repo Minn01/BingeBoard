@@ -7,15 +7,17 @@ import StarRating from './StarRating'
 type MovieDetailProps = {
     movie: Movie & { genre_ids: number[] }; // Assuming genre_ids is part of the movie object
     genres: { [key: number]: string }; // Mapping of genre IDs to genre names
+    onClose: () => void; // Add onClose handler
 }
 
-function MovieDetail({ movie, genres }: MovieDetailProps) {
+function MovieDetail({ movie, genres, onClose }: MovieDetailProps) {
+    return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
                 <div className="relative">
                     <button
-                        onClick={() => {}}
-                        className="absolute top-4 right-4 bg-black bg-opacity-50 text-white rounded-full p-2 hover:bg-opacity-70"
+                        onClick={onClose}
+                        className="absolute top-4 right-4 bg-black bg-opacity-50 text-white rounded-full p-2 hover:bg-opacity-70 z-10"
                     >
                         ×
                     </button>
@@ -65,7 +67,7 @@ function MovieDetail({ movie, genres }: MovieDetailProps) {
 
                         <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-700 mb-2">Your Rating</label>
-                            <StarRating rating={movie.userRating} interactive={true} />
+                            <StarRating rating={movie.userRating || 0} interactive={true} />
                         </div>
 
                         <div className="mb-4">
@@ -95,6 +97,7 @@ function MovieDetail({ movie, genres }: MovieDetailProps) {
                 </div>
             </div>
         </div>
+    );
 }
 
 export default MovieDetail

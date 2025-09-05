@@ -24,3 +24,211 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 } */
+
+/* Add this to your globals.css - REPLACE the old Swiper styles */
+
+/* Fix horizontal overflow - CRITICAL for preventing page scroll */
+body {
+  overflow-x: hidden !important;
+}
+
+/* Main container overflow fix */
+.max-w-7xl {
+  overflow-x: hidden !important;
+}
+
+/* Hide default Swiper navigation buttons since we use custom ones */
+.carousel-swiper .swiper-button-next,
+.carousel-swiper .swiper-button-prev {
+  display: none !important;
+}
+
+/* Fix Swiper container to prevent horizontal scroll */
+.carousel-swiper {
+  width: 100% !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 10px 0 !important;
+}
+
+/* Swiper wrapper should not exceed container */
+.carousel-swiper .swiper-wrapper {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Individual slides should be properly sized */
+.carousel-swiper .swiper-slide {
+  width: auto !important;
+  flex-shrink: 0 !important;
+  margin-right: 16px !important;
+}
+
+/* Movie card sizing within carousel */
+.carousel-swiper .swiper-slide > div {
+  width: 240px !important; /* Fixed width for consistency */
+  height: 100%;
+}
+
+/* Custom Pagination Dots */
+.swiper-pagination-bullet {
+  background-color: rgb(209 213 219) !important;
+  width: 8px !important;
+  height: 8px !important;
+  opacity: 0.6 !important;
+  transition: all 0.3s ease !important;
+  margin: 0 4px !important;
+}
+
+.swiper-pagination-bullet-active {
+  background-color: rgb(37 99 235) !important;
+  opacity: 1 !important;
+  transform: scale(1.2) !important;
+}
+
+/* Smooth hover effects for carousel items */
+.carousel-swiper .swiper-slide {
+  transition: transform 0.3s ease !important;
+}
+
+/* Movie card hover effects within carousel */
+.carousel-swiper .swiper-slide:hover {
+  z-index: 10;
+}
+
+/* Custom scrollbar (if needed) */
+.swiper-scrollbar {
+  background-color: rgb(229 231 235) !important;
+  height: 3px !important;
+  border-radius: 9999px !important;
+}
+
+.swiper-scrollbar-drag {
+  background-color: rgb(37 99 235) !important;
+  border-radius: 9999px !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .carousel-swiper .swiper-slide > div {
+    width: 200px !important; /* Smaller on mobile */
+  }
+  
+  .carousel-swiper .swiper-slide {
+    margin-right: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .carousel-swiper .swiper-slide > div {
+    width: 180px !important; /* Even smaller on very small screens */
+  }
+}
+
+/* Prevent any overflow on the main container */
+html {
+  overflow-x: hidden !important;
+}
+
+/* Add this to your globals.css - Hero Carousel Styles */
+
+/* Hero Swiper Container */
+.hero-swiper {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Hide default Swiper navigation for hero */
+.hero-swiper .swiper-button-next,
+.hero-swiper .swiper-button-prev {
+  display: none !important;
+}
+
+/* Custom Hero Pagination Dots */
+.hero-pagination-bullet {
+  width: 12px !important;
+  height: 12px !important;
+  background-color: rgba(255, 255, 255, 0.4) !important;
+  border-radius: 50% !important;
+  opacity: 1 !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
+  margin: 0 6px !important;
+}
+
+.hero-pagination-bullet-active {
+  background-color: white !important;
+  transform: scale(1.2) !important;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5) !important;
+}
+
+.hero-pagination-bullet:hover {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  transform: scale(1.1) !important;
+}
+
+/* Fade effect for smooth transitions */
+.hero-swiper .swiper-slide {
+  opacity: 0 !important;
+  transition: opacity 0.8s ease-in-out !important;
+}
+
+.hero-swiper .swiper-slide-active {
+  opacity: 1 !important;
+}
+
+/* Text animations */
+.hero-swiper .swiper-slide-active h1 {
+  animation: slideInFromLeft 0.8s ease-out forwards;
+}
+
+.hero-swiper .swiper-slide-active p {
+  animation: slideInFromLeft 1s ease-out 0.2s forwards;
+}
+
+.hero-swiper .swiper-slide-active .flex {
+  animation: slideInFromLeft 1.2s ease-out 0.4s forwards;
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .hero-pagination-bullet {
+    width: 10px !important;
+    height: 10px !important;
+    margin: 0 4px !important;
+  }
+}
+
+/* Line clamp utility for description text */
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+/* Backdrop blur support for older browsers */
+@supports not (backdrop-filter: blur(4px)) {
+  .backdrop-blur-sm {
+    background-color: rgba(0, 0, 0, 0.6) !important;
+  }
+}
+
+/* Ensure hero carousel doesn't cause horizontal scroll */
+.hero-swiper,
+.hero-swiper .swiper-wrapper,
+.hero-swiper .swiper-slide {
+  width: 100% !important;
+  overflow: hidden !important;
+}
