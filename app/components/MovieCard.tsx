@@ -1,5 +1,5 @@
 'use client'
-import { Star, Plus, Play } from "lucide-react"
+import { Star, Plus, Info } from "lucide-react"
 import Movie from "../types/Movie"
 
 interface MovieCardProps {
@@ -32,13 +32,13 @@ function MovieCard({ movie, onViewDetails, compact = false }: MovieCardProps) {
                     loading="lazy"
                 />
                 
-                {/* Overlay on hover */}
+                {/* Overlay on hover - Changed to show info instead of play */}
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                     <button
                         onClick={handleViewDetails}
                         className="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 transform scale-75 group-hover:scale-100 transition-transform duration-300"
                     >
-                        <Play className="w-5 h-5" />
+                        <Info className="w-5 h-5" />
                     </button>
                 </div>
 
@@ -103,12 +103,16 @@ function MovieCard({ movie, onViewDetails, compact = false }: MovieCardProps) {
                 {/* Action Buttons */}
                 <div className="flex gap-2 mt-auto">
                     <button
-                        className="flex-1 bg-blue-600 text-white py-2 px-3 rounded-md hover:bg-blue-700 transition-colors text-xs sm:text-sm font-medium"
+                        className="flex-1 bg-blue-600 text-white py-2 px-3 rounded-md hover:bg-blue-700 transition-colors text-xs sm:text-sm font-medium flex items-center justify-center space-x-1"
                         onClick={handleViewDetails}
                     >
-                        View Details
+                        <Info className="w-4 h-4" />
+                        <span>Details & Review</span>
                     </button>
-                    <button className="p-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+                    <button 
+                        className="p-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                        title="Add to Watchlist"
+                    >
                         <Plus className="w-4 h-4 text-gray-600" />
                     </button>
                 </div>
