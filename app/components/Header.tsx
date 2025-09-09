@@ -1,14 +1,17 @@
 'use client'
 
-import { Home, List, Search, User, X } from "lucide-react";
-import { useRouter, usePathname } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
-import LogoutButton from "./LogoutButton";
-import { tmdbApi, tmdbToMovie } from "../../lib/tmdb";
-import Movie from "../types/Movie";
+import { Search, Home, User, X } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
+import { useRouter, usePathname } from "next/navigation"
+import { tmdbApi, tmdbToMovie } from "../../lib/tmdb"
 
-interface SearchResult extends Movie {
-    media_type?: 'movie' | 'tv' | 'person';
+interface SearchResult {
+    id: number;
+    title: string;
+    poster_path: string | null;
+    release_date: string;
+    vote_average: number;
+    media_type: 'movie' | 'tv' | 'person';
 }
 
 function Header() {
@@ -93,7 +96,7 @@ function Header() {
     const handleSearchItemClick = (movie: SearchResult) => {
         setShowSearchResults(false);
         setSearchQuery('');
-        // You could navigate to a detailed movie page here
+        // Navigate to movie/TV detail page when implemented
         console.log('Selected movie:', movie);
     };
 
@@ -109,11 +112,12 @@ function Header() {
             // Navigate to browse page with search query
             router.push(`/browse?search=${encodeURIComponent(searchQuery.trim())}`);
             setShowSearchResults(false);
+            setSearchQuery(''); // Clear the search query after navigation
         }
     };
 
     return (
-        <header className="fixed w-full z-20 bg-gradient-to-r from-blue-900 to-purple-900 text-white shadow-lg">
+        <header className="fixed w-full z-50 bg-gradient-to-r from-blue-900 to-purple-900 text-white shadow-lg">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center py-4">
                     <div className="flex items-center">
@@ -152,9 +156,9 @@ function Header() {
                             </div>
                         </form>
 
-                        {/* Search Results Dropdown */}
+                        {/* Search Results Dropdown - Fixed positioning */}
                         {showSearchResults && searchResults.length > 0 && (
-                            <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-xl border border-gray-200 max-h-96 overflow-y-auto z-50">
+                            <div className="fixed left-1/2 transform -translate-x-1/2 top-[72px] w-full max-w-lg mt-1 bg-white rounded-lg shadow-xl border border-gray-200 max-h-96 overflow-y-auto z-[60]">
                                 <div className="p-2">
                                     <div className="text-xs text-gray-500 px-2 py-1 border-b">
                                         Search Results ({searchResults.length})
@@ -225,21 +229,15 @@ function Header() {
                                 onClick={() => moveTo('my-list')}
                                 className={`flex items-center space-x-1 hover:text-blue-200 transition-colors ${currentPage === 'my-list' ? 'text-blue-200' : ''}`}
                             >
-                                <List className="w-4 h-4" />
+                                <User className="w-4 h-4" />
                                 <span>My List</span>
                             </button>
                         </nav>
-
-                        <div className="flex items-center space-x-2">
-                            <User className="w-6 h-6" />
-                            <span className="font-medium">John</span>
-                            <LogoutButton />
-                        </div>
                     </div>
                 </div>
             </div>
         </header>
-    )
+    );
 }
 
 export default Header;

@@ -5,6 +5,7 @@ import MovieCard from "../components/MovieCard"
 import Movie from "../types/Movie"
 import MovieDetail from "../components/MovieDetail"
 import { useState, useEffect, useCallback } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
 import { tmdbApi, tmdbToMovie, TMDBMovie } from "../../lib/tmdb"
 
 const genres: { [key: number]: string } = {
@@ -23,6 +24,18 @@ function BrowsePage() {
     const [totalPages, setTotalPages] = useState(1);
     const [contentType, setContentType] = useState<'all' | 'movie' | 'tv'>('all');
     const [sortBy, setSortBy] = useState<'popularity' | 'rating' | 'release_date' | 'title'>('popularity');
+    
+    const searchParams = useSearchParams();
+    const router = useRouter();
+
+    // Read search query from URL parameters
+    useEffect(() => {
+        const urlSearchQuery = searchParams.get('search');
+        if (urlSearchQuery && urlSearchQuery !== searchQuery) {
+            setSearchQuery(urlSearchQuery);
+            setCurrentPage(1); // Reset to first page when URL search changes
+        }
+    }, [searchParams]);
 
     const fetchMovies = useCallback(async (page: number = 1, search: string = '') => {
         setLoading(true);
@@ -81,10 +94,21 @@ function BrowsePage() {
         });
     };
 
-    // Debounced search
+    // Update URL when search query changes from sidebar
+    const handleSearchQueryChange = (newQuery: string) => {
+        setSearchQuery(newQuery);
+        setCurrentPage(1);
+        
+        // Update URL
+        const newUrl = newQuery.trim() 
+            ? `/browse?search=${encodeURIComponent(newQuery.trim())}`
+            : '/browse';
+        router.push(newUrl, { scroll: false });
+    };
+
+    // Debounced search - triggers when searchQuery changes
     useEffect(() => {
         const delayedSearch = setTimeout(() => {
-            setCurrentPage(1);
             fetchMovies(1, searchQuery);
         }, 500);
 
@@ -98,10 +122,14 @@ function BrowsePage() {
         }
     }, [currentPage, fetchMovies, searchQuery]);
 
-    // Initial load
+    // Initial load - fetch based on URL params or default content
     useEffect(() => {
-        fetchMovies();
-    }, [fetchMovies]);
+        const urlSearchQuery = searchParams.get('search') || '';
+        if (urlSearchQuery !== searchQuery) {
+            setSearchQuery(urlSearchQuery);
+        }
+        fetchMovies(1, urlSearchQuery);
+    }, []); // Only run once on mount
 
     const handleViewDetails = (movie: Movie) => {
         setSelectedMovie(movie);
@@ -180,7 +208,7 @@ function BrowsePage() {
                             <input
                                 type="text"
                                 value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onChange={(e) => handleSearchQueryChange(e.target.value)}
                                 placeholder="Search movies & shows..."
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
@@ -249,13 +277,16 @@ function BrowsePage() {
                         </div>
                     ) : movies.length === 0 ? (
                         <div className="text-center py-12">
-                            <p className="text-gray-500 text-lg">No movies found.</p>
-                            <p className="text-gray-400 text-sm mt-2">Try adjusting your search or filters.</p>
+                            <div className="text-gray-500 text-lg">
+                                {searchQuery ? `No results found for "${searchQuery}"` : 'No movies found'}
+                            </div>
+                            <p className="text-gray-400 mt-2">Try adjusting your search or filters</p>
                         </div>
                     ) : (
                         <>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                                {movies.map(movie => (
+                            {/* Movies Grid */}
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-6">
+                                {movies.map((movie) => (
                                     <MovieCard 
                                         key={movie.id} 
                                         movie={movie} 
@@ -264,6 +295,7 @@ function BrowsePage() {
                                 ))}
                             </div>
 
+                            {/* Pagination */}
                             {totalPages > 1 && renderPagination()}
                         </>
                     )}
@@ -272,14 +304,14 @@ function BrowsePage() {
 
             {/* Movie Detail Modal */}
             {selectedMovie && (
-                <MovieDetail
-                    movie={selectedMovie}
+                <MovieDetail 
+                    movie={selectedMovie} 
                     genres={genres}
-                    onClose={handleCloseDetails}
+                    onClose={handleCloseDetails} 
                 />
             )}
         </div>
-    )
+    );
 }
 
-export default BrowsePage
+export default BrowsePage;
