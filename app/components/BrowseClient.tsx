@@ -84,7 +84,7 @@ const fetchMovies = useCallback(async (page: number = 1, search: string = '') =>
       // Calling different endpoints based on content type
       let apiUrl = `/api/search`;
       if (contentType === 'movie') {
-        apiUrl = `/api/search/movie?query=${encodeURIComponent(search)}&page=${page}`;
+        apiUrl = `/api/search/movies?query=${encodeURIComponent(search)}&page=${page}`;
       } else if (contentType === 'tv') {
         apiUrl = `/api/search/tv?query=${encodeURIComponent(search)}&page=${page}`;
       } else {

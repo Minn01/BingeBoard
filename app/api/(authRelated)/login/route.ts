@@ -1,23 +1,22 @@
-// app/api/login/
-
+// app/api/login/route.ts
 import { NextResponse } from "next/server";
 import connect from "@/lib/mongoose";
 import User from "@/models/User";
-import Session from "@/models/Session";
 import bcrypt from "bcrypt";
-import crypto from "crypto";
+import jwt from "jsonwebtoken";
 
 export async function POST(req: Request) {
-    // Extract email and password from request body
+    // Parse request body
     const { email, password } = await req.json();
 
-    // Generate a new session ID
-    const sessionId = crypto.randomUUID();
+    // Validate input
+    if (!email) return NextResponse.json({ error: "Email is required" }, { status: 400 });
+    if (!password) return NextResponse.json({ error: "Password is required" }, { status: 400 });
 
-    // Connect to the database
+    // connect to DB
     await connect();
 
-    // Find user by email
+    // Find user
     const user = await User.findOne({ email });
     if (!user) return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
 
@@ -25,22 +24,21 @@ export async function POST(req: Request) {
     const isValid = await bcrypt.compare(password, user.passwordHash);
     if (!isValid) return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
 
-    // Create session object for the user, intended for the database
-    await Session.create({
-        userId: user._id,
-        sessionId,
-        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24), // 1 day
-    });
+    // Create JWT
+    const token = jwt.sign(
+        { userId: user._id, username: user.username },
+        process.env.JWT_SECRET!,
+        { expiresIn: "1d" }
+    );
 
-    const response = NextResponse.json({ message: "Logged in!" });
+    const response = NextResponse.json({ message: "Logged in!", token });
 
-    // Setting the cookie for the browser (HTTP-only)
-    response.cookies.set("session", sessionId, {
+    // Store JWT in cookie
+    response.cookies.set("token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         path: "/",
-        // apparently cookies can expire automatically using the maxAge attribute here
-        maxAge: 60 * 60 * 24, // 1 day
+        maxAge: 60 * 60 * 24,
     });
 
     return response;
