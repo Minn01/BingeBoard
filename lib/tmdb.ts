@@ -3,7 +3,7 @@ export const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 export const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 
 // You need to get your API key from https://www.themoviedb.org/settings/api
-export const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY || '';
+export const TMDB_API_KEY = process.env.TMDB_API_KEY || '';
 
 export interface TMDBMovie {
   id: number;

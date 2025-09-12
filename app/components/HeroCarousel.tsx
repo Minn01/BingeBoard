@@ -11,6 +11,7 @@ import 'swiper/css/pagination';
 import 'swiper/css/effect-fade';
 
 import Movie from '../types/Movie';
+import { useEffect } from 'react';
 
 interface HeroCarouselProps {
     movies: Movie[];
@@ -25,6 +26,11 @@ function HeroCarousel({
     onPlayMovie, 
     onAddToList 
 }: HeroCarouselProps) {
+
+    useEffect(() => {
+        // Swiper styles are imported globally, no need to do anything here
+        console.log('HeroCarousel mounted');
+    }, []);
     
     if (!movies || movies.length === 0) {
         return null;
@@ -59,9 +65,9 @@ function HeroCarousel({
             >
                 {featuredMovies.map((movie) => (
                     <SwiperSlide key={movie.id}>
-                        <div className="relative w-full h-full">
+                        <div className="relative w-full h-full bg-black">
                             {/* Background Image (Backdrop) */}
-                            <div className="absolute inset-0">
+                            <div className="absolute inset-0 bg-black">
                                 <img
                                     src={movie.poster_path 
                                         ? `https://image.tmdb.org/t/p/w1280${movie.poster_path}` 

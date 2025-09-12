@@ -14,7 +14,7 @@ export default function LayoutClient({ children }: LayoutClientProps) {
     return (
         <>
             {!isAuthRoute && <Header />}
-            <main className={isAuthRoute ? '' : 'pt-20'}>
+            <main className={isAuthRoute ? '' : 'pt-18'}>
                 {children}
             </main>
         </>

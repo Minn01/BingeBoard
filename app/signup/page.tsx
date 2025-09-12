@@ -1,20 +1,42 @@
 'use client';
+import { useState } from "react";
 
 function SignUpPage() {
-    const handleSignup = async () => {
-        const res = await fetch('/api/signup', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            // body: JSON.stringify({ username, password }), // Add actual signup data here later
-        });
+    const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
 
-        if (res.ok) {
-            // Redirect to home page on successful login
-            window.location.href = '/';
-        } else {
-            window.alert("an error occurred during calling signup endpoint");
+    const handleSignup = async () => {
+        // Basic validation
+        if (!email || !username || !password) {
+            window.alert("All fields are required");
+            return;
+        }
+        if (!/\S+@\S+\.\S+/.test(email)) {
+            window.alert("Please enter a valid email address");
+            return;
+        }
+        if (password.length < 6) {
+            window.alert("Password must be at least 6 characters");
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/signup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, username, password }),
+            });
+
+            if (res.ok) {
+                window.location.href = '/';
+            } else {
+                const data = await res.json();
+                window.alert(data.error || "An error occurred during signup");
+            }
+        } catch (err) {
+            console.error(err);
+            window.alert("Network error or server error occurred");
         }
     }
 
@@ -29,13 +51,26 @@ function SignUpPage() {
                 <div className="bg-white rounded-lg shadow-xl p-8">
                     <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Sign Up</h2>
 
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                             <input
                                 type="email"
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 placeholder="your@email.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                            <input
+                                type="text"
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Choose a username"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
                             />
                         </div>
 
@@ -45,6 +80,8 @@ function SignUpPage() {
                                 type="password"
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 placeholder="••••••••"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                             />
                         </div>
 
@@ -69,16 +106,6 @@ function SignUpPage() {
             </div>
         </div>
     )
-        // <div className="flex justify-center items-center h-screen flex-col gap-4">
-        //     <h1>This is the signup page</h1>
-        //     <a href="/login">Press here to login</a>
-        
-        //     {/* this should later be moved to a different file */}
-        //     <button type="button" className="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700"
-        //         onClick={handleSignup}>
-        //         Press here to go to home
-        //     </button>
-        // </div>
 }
 
 export default SignUpPage;

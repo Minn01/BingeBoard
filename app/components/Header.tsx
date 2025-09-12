@@ -4,6 +4,7 @@ import { Search, Home, User, X } from "lucide-react"
 import { useState, useEffect, useRef } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { tmdbApi, tmdbToMovie } from "../../lib/tmdb"
+import LogoutButton from "./LogoutButton"
 
 interface SearchResult {
     id: number;
@@ -46,18 +47,25 @@ function Header() {
             setSearchLoading(true);
             searchTimeoutRef.current = setTimeout(async () => {
                 try {
-                    const response = await tmdbApi.searchMulti(searchQuery, 1);
-                    const results = response.results
-                        .filter((item: any) => item.media_type !== 'person') // Filter out people
-                        .slice(0, 8) // Limit to 8 results
+                    const res = await fetch(`/api/search/multi?query=${encodeURIComponent(searchQuery)}&page=1`);
+                    const data = await res.json();
+
+                    const results = (data.results || [])
+                        .filter((item: any) => item.media_type !== "person")
+                        .slice(0, 8)
                         .map((item: any) => ({
-                            ...tmdbToMovie(item),
-                            media_type: item.media_type as 'movie' | 'tv'
+                            id: item.id,
+                            title: item.title || item.name,
+                            poster_path: item.poster_path,
+                            release_date: item.release_date || item.first_air_date,
+                            vote_average: item.vote_average || 0,
+                            media_type: item.media_type as "movie" | "tv",
                         }));
+
                     setSearchResults(results);
                     setShowSearchResults(true);
                 } catch (error) {
-                    console.error('Search error:', error);
+                    console.error("Search error:", error);
                     setSearchResults([]);
                 } finally {
                     setSearchLoading(false);
@@ -170,8 +178,8 @@ function Header() {
                                             className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded cursor-pointer"
                                         >
                                             <img
-                                                src={movie.poster_path ? 
-                                                    `https://image.tmdb.org/t/p/w92${movie.poster_path}` : 
+                                                src={movie.poster_path ?
+                                                    `https://image.tmdb.org/t/p/w92${movie.poster_path}` :
                                                     '/api/placeholder/46/69'
                                                 }
                                                 alt={movie.title}
@@ -182,7 +190,7 @@ function Header() {
                                                     {movie.title}
                                                 </p>
                                                 <p className="text-xs text-gray-500">
-                                                    {movie.media_type === 'tv' ? 'TV Show' : 'Movie'} • 
+                                                    {movie.media_type === 'tv' ? 'TV Show' : 'Movie'} •
                                                     {movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}
                                                 </p>
                                                 <div className="flex items-center mt-1">
@@ -198,7 +206,7 @@ function Header() {
                                     ))}
                                     {searchQuery.trim() && (
                                         <button
-                                            onClick={() => handleSearchSubmit({ preventDefault: () => {} } as React.FormEvent)}
+                                            onClick={() => handleSearchSubmit({ preventDefault: () => { } } as React.FormEvent)}
                                             className="w-full text-left p-2 hover:bg-gray-50 rounded text-sm text-blue-600 font-medium border-t mt-1 pt-3"
                                         >
                                             See all results for "{searchQuery}"
@@ -233,6 +241,12 @@ function Header() {
                                 <span>My List</span>
                             </button>
                         </nav>
+
+                        <div className="flex items-center space-x-2">
+                            <User className="w-6 h-6" />
+                            <span className="font-medium">John</span>
+                            <LogoutButton />
+                        </div>
                     </div>
                 </div>
             </div>

@@ -32,7 +32,9 @@ function MovieDetail({ movie, genres, onClose }: MovieDetailProps) {
                     <div className="flex justify-between items-start mb-4">
                         <div>
                             <h2 className="text-3xl font-bold text-gray-900 mb-2">{movie.title}</h2>
-                            <p className="text-gray-600">{new Date(movie.release_date).getFullYear()}</p>
+                            {movie.release_date && (
+                                <p className="text-gray-600">{new Date(movie.release_date).getFullYear()}</p>
+                            )}
                         </div>
                         <div className="flex items-center space-x-2">
                             <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />

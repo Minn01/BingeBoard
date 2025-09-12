@@ -1,16 +1,25 @@
 // app/api/logout/
 
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
+import connect from "@/lib/mongoose";
+import Session from "@/models/Session";
 
-export async function POST() {
+export async function POST(req: NextRequest) {
+  // Extract session ID from cookies
+  const sessionId = req.cookies.get("session")?.value;
+
+  // If no session ID, return early
+  if (!sessionId) return NextResponse.json({ message: "No session found" });
+
+  // Connect to the database and delete the session
+  await connect();
+  await Session.deleteOne({ sessionId });
+
+  // Clear the cookie in the browser
   const response = NextResponse.json({ message: "Logged out" });
-
-   // TODO: properly implement logout
-
-  // Delete the session cookie
   response.cookies.set("session", "", {
-    path: "/",      // same path as the cookie was set
-    maxAge: 0,      // expire immediately
+    path: "/",
+    maxAge: 0
   });
 
   return response;

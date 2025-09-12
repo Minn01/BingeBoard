@@ -1,317 +1,53 @@
-'use client'
+// app/browse/page.tsx (Server Component)
+import { tmdbApi, tmdbToMovie } from "@/lib/tmdb";
+import BrowseClient from '../components/BrowseClient';
 
-import { Filter, Loader2 } from "lucide-react"
-import MovieCard from "../components/MovieCard"
-import Movie from "../types/Movie"
-import MovieDetail from "../components/MovieDetail"
-import { useState, useEffect, useCallback } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
-import { tmdbApi, tmdbToMovie, TMDBMovie } from "../../lib/tmdb"
+async function BrowsePage() {
+  try {
+    // Fetch initial data on server - popular content for each type
+    const [
+      trendingResponse,
+      popularMoviesResponse, 
+      popularTVResponse
+    ] = await Promise.all([
+      tmdbApi.getTrending('week', 1),
+      tmdbApi.getPopularMovies(1),
+      tmdbApi.getPopularTVShows(1)
+    ]);
 
-const genres: { [key: number]: string } = {
-  28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy", 80: "Crime", 
-  99: "Documentary", 18: "Drama", 10751: "Family", 14: "Fantasy", 36: "History",
-  27: "Horror", 10402: "Music", 9648: "Mystery", 10749: "Romance", 878: "Science Fiction",
-  10770: "TV Movie", 53: "Thriller", 10752: "War", 37: "Western"
-};
+    const initialData = {
+      trending: trendingResponse.results.slice(0, 20).map(tmdbToMovie),
+      popularMovies: popularMoviesResponse.results.slice(0, 20).map(tmdbToMovie),
+      popularTVShows: popularTVResponse.results.slice(0, 20).map(tmdbToMovie),
+      totalPages: {
+        trending: trendingResponse.total_pages,
+        movies: popularMoviesResponse.total_pages,
+        tv: popularTVResponse.total_pages
+      }
+    };
 
-function BrowsePage() {
-    const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
-    const [movies, setMovies] = useState<Movie[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
-    const [contentType, setContentType] = useState<'all' | 'movie' | 'tv'>('all');
-    const [sortBy, setSortBy] = useState<'popularity' | 'rating' | 'release_date' | 'title'>('popularity');
+    return <BrowseClient initialData={initialData} />;
     
-    const searchParams = useSearchParams();
-    const router = useRouter();
-
-    // Read search query from URL parameters
-    useEffect(() => {
-        const urlSearchQuery = searchParams.get('search');
-        if (urlSearchQuery && urlSearchQuery !== searchQuery) {
-            setSearchQuery(urlSearchQuery);
-            setCurrentPage(1); // Reset to first page when URL search changes
-        }
-    }, [searchParams]);
-
-    const fetchMovies = useCallback(async (page: number = 1, search: string = '') => {
-        setLoading(true);
-        try {
-            let response;
-            
-            if (search.trim()) {
-                // Search functionality
-                if (contentType === 'movie') {
-                    response = await tmdbApi.searchMovies(search, page);
-                } else if (contentType === 'tv') {
-                    response = await tmdbApi.searchTVShows(search, page);
-                } else {
-                    response = await tmdbApi.searchMulti(search, page);
-                }
-            } else {
-                // Popular content
-                if (contentType === 'movie') {
-                    response = await tmdbApi.getPopularMovies(page);
-                } else if (contentType === 'tv') {
-                    response = await tmdbApi.getPopularTVShows(page);
-                } else {
-                    // Get trending for 'all' option
-                    response = await tmdbApi.getTrending('week', page);
-                }
-            }
-
-            const convertedMovies = response.results.map(tmdbToMovie);
-            
-            // Apply sorting
-            const sortedMovies = sortMovies(convertedMovies, sortBy);
-            
-            setMovies(sortedMovies);
-            setTotalPages(response.total_pages);
-        } catch (error) {
-            console.error('Error fetching movies:', error);
-            setMovies([]);
-        } finally {
-            setLoading(false);
-        }
-    }, [contentType, sortBy]);
-
-    const sortMovies = (movieList: Movie[], sortType: string): Movie[] => {
-        return [...movieList].sort((a, b) => {
-            switch (sortType) {
-                case 'rating':
-                    return b.vote_average - a.vote_average;
-                case 'release_date':
-                    return new Date(b.release_date).getTime() - new Date(a.release_date).getTime();
-                case 'title':
-                    return a.title.localeCompare(b.title);
-                case 'popularity':
-                default:
-                    return 0; // TMDB already returns by popularity
-            }
-        });
-    };
-
-    // Update URL when search query changes from sidebar
-    const handleSearchQueryChange = (newQuery: string) => {
-        setSearchQuery(newQuery);
-        setCurrentPage(1);
-        
-        // Update URL
-        const newUrl = newQuery.trim() 
-            ? `/browse?search=${encodeURIComponent(newQuery.trim())}`
-            : '/browse';
-        router.push(newUrl, { scroll: false });
-    };
-
-    // Debounced search - triggers when searchQuery changes
-    useEffect(() => {
-        const delayedSearch = setTimeout(() => {
-            fetchMovies(1, searchQuery);
-        }, 500);
-
-        return () => clearTimeout(delayedSearch);
-    }, [searchQuery, contentType, sortBy, fetchMovies]);
-
-    // Load more when page changes
-    useEffect(() => {
-        if (currentPage > 1) {
-            fetchMovies(currentPage, searchQuery);
-        }
-    }, [currentPage, fetchMovies, searchQuery]);
-
-    // Initial load - fetch based on URL params or default content
-    useEffect(() => {
-        const urlSearchQuery = searchParams.get('search') || '';
-        if (urlSearchQuery !== searchQuery) {
-            setSearchQuery(urlSearchQuery);
-        }
-        fetchMovies(1, urlSearchQuery);
-    }, []); // Only run once on mount
-
-    const handleViewDetails = (movie: Movie) => {
-        setSelectedMovie(movie);
-    };
-
-    const handleCloseDetails = () => {
-        setSelectedMovie(null);
-    };
-
-    const handlePageChange = (page: number) => {
-        setCurrentPage(page);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    const renderPagination = () => {
-        const maxPagesToShow = 5;
-        const startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
-        const endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-        
-        const pages = [];
-        for (let i = startPage; i <= endPage; i++) {
-            pages.push(i);
-        }
-
-        return (
-            <div className="mt-8 flex justify-center">
-                <nav className="flex items-center space-x-2">
-                    <button 
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                        className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        Previous
-                    </button>
-                    
-                    {pages.map(page => (
-                        <button
-                            key={page}
-                            onClick={() => handlePageChange(page)}
-                            className={`px-3 py-2 text-sm rounded ${
-                                page === currentPage 
-                                    ? 'bg-blue-600 text-white' 
-                                    : 'text-gray-500 hover:text-gray-700'
-                            }`}
-                        >
-                            {page}
-                        </button>
-                    ))}
-                    
-                    <button 
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                        className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        Next
-                    </button>
-                </nav>
-            </div>
-        );
-    };
-
+  } catch (error) {
+    console.error('Failed to load browse data:', error);
+    
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="flex gap-8">
-                {/* Filters Sidebar */}
-                <div className="w-64 flex-shrink-0">
-                    <div className="bg-white rounded-lg shadow p-6 sticky top-24">
-                        <h3 className="font-bold text-gray-900 mb-4 flex items-center">
-                            <Filter className="w-4 h-4 mr-2" />
-                            Filters
-                        </h3>
-
-                        {/* Search Input */}
-                        <div className="mb-6">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
-                            <input
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => handleSearchQueryChange(e.target.value)}
-                                placeholder="Search movies & shows..."
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                        </div>
-
-                        {/* Content Type Filter */}
-                        <div className="mb-6">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
-                            <select 
-                                value={contentType}
-                                onChange={(e) => setContentType(e.target.value as 'all' | 'movie' | 'tv')}
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="all">All</option>
-                                <option value="movie">Movies</option>
-                                <option value="tv">TV Shows</option>
-                            </select>
-                        </div>
-
-                        {/* Sort Options */}
-                        <div className="mb-6">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
-                            <select 
-                                value={sortBy}
-                                onChange={(e) => setSortBy(e.target.value as any)}
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="popularity">Popularity</option>
-                                <option value="rating">Rating</option>
-                                <option value="release_date">Release Date</option>
-                                <option value="title">Title</option>
-                            </select>
-                        </div>
-
-                        <button 
-                            onClick={() => {
-                                setCurrentPage(1);
-                                fetchMovies(1, searchQuery);
-                            }}
-                            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                        >
-                            Apply Filters
-                        </button>
-                    </div>
-                </div>
-
-                {/* Main Content */}
-                <div className="flex-1">
-                    <div className="flex justify-between items-center mb-6">
-                        <div>
-                            <h2 className="text-2xl font-bold text-gray-900">
-                                {searchQuery ? `Search Results for "${searchQuery}"` : 
-                                 contentType === 'all' ? 'Trending Movies & TV Shows' :
-                                 contentType === 'movie' ? 'Popular Movies' : 'Popular TV Shows'}
-                            </h2>
-                            <p className="text-gray-600 mt-1">
-                                Page {currentPage} of {totalPages} • {movies.length} results
-                            </p>
-                        </div>
-                    </div>
-
-                    {loading ? (
-                        <div className="flex justify-center items-center h-64">
-                            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-                            <span className="ml-2 text-gray-600">Loading movies...</span>
-                        </div>
-                    ) : movies.length === 0 ? (
-                        <div className="text-center py-12">
-                            <div className="text-gray-500 text-lg">
-                                {searchQuery ? `No results found for "${searchQuery}"` : 'No movies found'}
-                            </div>
-                            <p className="text-gray-400 mt-2">Try adjusting your search or filters</p>
-                        </div>
-                    ) : (
-                        <>
-                            {/* Movies Grid */}
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-6">
-                                {movies.map((movie) => (
-                                    <MovieCard 
-                                        key={movie.id} 
-                                        movie={movie} 
-                                        onViewDetails={handleViewDetails}
-                                    />
-                                ))}
-                            </div>
-
-                            {/* Pagination */}
-                            {totalPages > 1 && renderPagination()}
-                        </>
-                    )}
-                </div>
-            </div>
-
-            {/* Movie Detail Modal */}
-            {selectedMovie && (
-                <MovieDetail 
-                    movie={selectedMovie} 
-                    genres={genres}
-                    onClose={handleCloseDetails} 
-                />
-            )}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <h3 className="text-red-800 font-semibold">Unable to load browse content</h3>
+          <p className="text-red-600 mt-2">
+            Please check your TMDB API key or try again later.
+          </p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="mt-4 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
+          >
+            Retry
+          </button>
         </div>
+      </div>
     );
+  }
 }
 
 export default BrowsePage;

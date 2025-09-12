@@ -1,20 +1,38 @@
 'use client';
+import { useState } from "react";
 
 function LoginPage() {
-    const handleLogin = async () => {
-        const res = await fetch('/api/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            // body: JSON.stringify({ username, password }), // Add actual signup data here later
-        });
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
 
-        if (res.ok) {
-            // Redirect to home page on successful login
-            window.location.href = '/';
-        } else {
-            window.alert("an error occurred during calling login endpoint");
+    const handleLogin = async () => {
+        // Simple validation
+        if (!email || !password) {
+            setErrorMessage("Email and password are required");
+            return;
+        }
+        if (!/\S+@\S+\.\S+/.test(email)) {
+            setErrorMessage("Please enter a valid email address");
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
+            });
+
+            if (res.ok) {
+                window.location.href = '/';
+            } else {
+                const data = await res.json();
+                setErrorMessage(data.error || "Invalid email or password");
+            }
+        } catch (err) {
+            console.log(err);
+            setErrorMessage("Network error or server error occurred");
         }
     }
 
@@ -29,13 +47,15 @@ function LoginPage() {
                 <div className="bg-white rounded-lg shadow-xl p-8">
                     <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Sign In</h2>
 
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                             <input
                                 type="email"
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 placeholder="your@email.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                             />
                         </div>
 
@@ -45,16 +65,22 @@ function LoginPage() {
                                 type="password"
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 placeholder="••••••••"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                             />
                         </div>
 
-                        <button
-                            type="button"
-                            onClick={handleLogin}
-                            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                        >
-                            Login
-                        </button>
+                        <div className="flex items-center flex-col">
+                            <button
+                                type="button"
+                                onClick={handleLogin}
+                                className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                            >
+                                Login
+                            </button>
+
+                            {errorMessage && <p className="text-red-500 text-sm mt-2">{errorMessage}</p>}
+                        </div>
                     </div>
 
                     <div className="mt-6 text-center">
@@ -69,16 +95,6 @@ function LoginPage() {
             </div>
         </div>
     );
-        // <div className="flex justify-center items-center h-screen flex-col gap-4">
-        //     <h1>This is the login page</h1>
-        //     <a href="/signup">Press here to signup</a>
-
-        //     <button type="button" className="text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700"
-        //         onClick={handleLogin}>
-        //         Press here to go to home
-        //     </button>
-        // </div>
-    
 }
 
 export default LoginPage;
