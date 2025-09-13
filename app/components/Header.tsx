@@ -3,8 +3,8 @@
 import { Search, Home, User, X } from "lucide-react"
 import { useState, useEffect, useRef } from "react"
 import { useRouter, usePathname } from "next/navigation"
-import { tmdbApi, tmdbToMovie } from "../../lib/tmdb"
 import LogoutButton from "./LogoutButton"
+import { getUserFromRequest } from "@/lib/auth"
 
 interface SearchResult {
     id: number;
@@ -25,6 +25,22 @@ function Header() {
     const pathname = usePathname();
     const searchRef = useRef<HTMLDivElement>(null);
     const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [user, setUser] = useState<{ username: string } | null>(null); 
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const res = await fetch('/api/me');
+                if (!res.ok) throw new Error('Not logged in');
+                const data = await res.json();
+                setUser(data.user); 
+            } catch (err) {
+                console.error(err);
+            }
+        };
+        fetchUser();
+    }, []);
+
 
     // Update current page based on pathname
     useEffect(() => {
@@ -244,7 +260,7 @@ function Header() {
 
                         <div className="flex items-center space-x-2">
                             <User className="w-6 h-6" />
-                            <span className="font-medium">John</span>
+                            <span className="font-medium">{user?.username}</span>
                             <LogoutButton />
                         </div>
                     </div>

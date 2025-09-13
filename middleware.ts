@@ -1,9 +1,7 @@
-// middleware.ts
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import jwt from "jsonwebtoken";
+import { NextRequest, NextResponse } from 'next/server';
+import { jwtVerify } from 'jose';
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
     const token = req.cookies.get("token")?.value;
 
     if (!token) {
@@ -11,19 +9,19 @@ export function middleware(req: NextRequest) {
     }
 
     try {
-        jwt.verify(token, process.env.JWT_SECRET!);
+        await jwtVerify(token, new TextEncoder().encode(process.env.JWT_SECRET));
         return NextResponse.next();
     } catch {
         return NextResponse.redirect(new URL("/login", req.url));
     }
 }
 
-// Protect page routes
+// Only run middleware on protected routes
 export const config = {
     matcher: [
-        "/",
-        "my-list/:path*",
-        "/browse/:path*",
-        "/api/protected/:path*"
-    ]
+        '/',                 // Home page
+        '/my-list/:path*',   // My List pages
+        '/browse/:path*',    // Browse pages
+        '/api/protected/:path*', // Any protected API
+    ],
 };

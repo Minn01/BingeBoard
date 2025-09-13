@@ -1,10 +1,12 @@
 'use client';
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
+    const router = useRouter();
 
     const handleLogin = async () => {
         // Simple validation
@@ -22,10 +24,11 @@ function LoginPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
+                credentials: 'include', 
             });
 
             if (res.ok) {
-                window.location.href = '/';
+                router.push('/');
             } else {
                 const data = await res.json();
                 setErrorMessage(data.error || "Invalid email or password");

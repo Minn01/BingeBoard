@@ -1,10 +1,12 @@
 'use client';
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 function SignUpPage() {
     const [email, setEmail] = useState('');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const router = useRouter();
 
     const handleSignup = async () => {
         // Basic validation
@@ -26,10 +28,11 @@ function SignUpPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, username, password }),
+                credentials: 'include', 
             });
 
             if (res.ok) {
-                window.location.href = '/';
+                router.push('/');
             } else {
                 const data = await res.json();
                 window.alert(data.error || "An error occurred during signup");

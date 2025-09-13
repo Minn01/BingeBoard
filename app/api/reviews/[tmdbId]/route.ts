@@ -1,12 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import connect from "@/lib/mongoose";
 import UserReview from "@/models/UserReview";
 
 // GET /api/reviews/:tmdbId?type=movie|tv&page=1
-export async function GET(req: Request, { params }: { params: { tmdbId: string } }) {
+export async function GET(req: NextRequest, { params }: { params: { tmdbId: string } }) {
   await connect();
 
-  const { searchParams } = new URL(req.url);
+  const searchParams = req.nextUrl.searchParams; 
   const mediaType = searchParams.get("type");
   const page = parseInt(searchParams.get("page") || "1");
   const limit = 10;
