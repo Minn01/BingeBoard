@@ -12,26 +12,28 @@ import 'swiper/css/effect-fade';
 
 import Movie from '../types/Movie';
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface HeroCarouselProps {
     movies: Movie[];
-    onViewDetails: (movie: Movie) => void;
-    onPlayMovie?: (movie: Movie) => void;
     onAddToList?: (movie: Movie) => void;
 }
 
-function HeroCarousel({ 
-    movies, 
-    onViewDetails, 
-    onPlayMovie, 
-    onAddToList 
+function HeroCarousel({
+    movies,
+    onAddToList
 }: HeroCarouselProps) {
+    const router = useRouter();
+    // TODO : check if this works
+    const handleViewDetail = (movie: Movie) => {
+        router.push(`/details/${movie.mediaType}/${movie.id}`)
+    }
 
     useEffect(() => {
         // Swiper styles are imported globally, no need to do anything here
         console.log('HeroCarousel mounted');
     }, []);
-    
+
     if (!movies || movies.length === 0) {
         return null;
     }
@@ -69,8 +71,8 @@ function HeroCarousel({
                             {/* Background Image (Backdrop) */}
                             <div className="absolute inset-0 bg-black">
                                 <img
-                                    src={movie.poster_path 
-                                        ? `https://image.tmdb.org/t/p/w1280${movie.poster_path}` 
+                                    src={movie.poster_path
+                                        ? `https://image.tmdb.org/t/p/w1280${movie.poster_path}`
                                         : '/api/placeholder/1280/720'
                                     }
                                     alt={movie.title}
@@ -119,15 +121,15 @@ function HeroCarousel({
 
                                             {/* Action Buttons */}
                                             <div className="flex items-center space-x-4">
-                                                <button 
-                                                    onClick={() => onViewDetails(movie)}
+                                                <button
+                                                    onClick={() => handleViewDetail(movie)}
                                                     className="bg-white text-black px-8 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors flex items-center space-x-2"
                                                 >
                                                     <Info className="w-5 h-5" />
                                                     <span>View Details</span>
                                                 </button>
 
-                                                <button 
+                                                <button
                                                     onClick={() => onAddToList?.(movie)}
                                                     className="bg-transparent border-2 border-white/70 text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/20 transition-colors flex items-center space-x-2"
                                                 >
@@ -141,8 +143,8 @@ function HeroCarousel({
                                         <div className="hidden lg:block flex-shrink-0">
                                             <div className="relative">
                                                 <img
-                                                    src={movie.poster_path 
-                                                        ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` 
+                                                    src={movie.poster_path
+                                                        ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
                                                         : '/api/placeholder/300/450'
                                                     }
                                                     alt={movie.title}
@@ -166,7 +168,7 @@ function HeroCarousel({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
             </button>
-            
+
             <button className="hero-button-next absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white p-3 rounded-full transition-colors">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

@@ -15,7 +15,6 @@ import MovieCard from './MovieCard';
 interface MovieCarouselProps {
     title: string;
     movies: Movie[];
-    onViewDetails: (movie: Movie) => void;
     autoplay?: boolean;
     showPagination?: boolean;
     slidesPerView?: {
@@ -28,7 +27,6 @@ interface MovieCarouselProps {
 function MovieCarousel({ 
     title, 
     movies, 
-    onViewDetails, 
     autoplay = false,
     showPagination = false,
     slidesPerView = { mobile: 1.2, tablet: 3, desktop: 5 }
@@ -98,7 +96,6 @@ function MovieCarousel({
                             <div className="h-full transition-transform duration-300 hover:scale-105">
                                 <MovieCard 
                                     movie={movie} 
-                                    onViewDetails={onViewDetails}
                                 />
                             </div>
                         </SwiperSlide>

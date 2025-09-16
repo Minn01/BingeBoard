@@ -3,12 +3,11 @@
 import { Filter, Loader2 } from "lucide-react"
 import MovieCard from "../components/MovieCard"
 import Movie from "../types/Movie"
-import MovieDetail from "../components/MovieDetail"
 import { useState, useEffect, useCallback } from "react"
 import { tmdbApi, tmdbToMovie } from "../../lib/tmdb"
 
 const genres: { [key: number]: string } = {
-  28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy", 80: "Crime", 
+  28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy", 80: "Crime",
   99: "Documentary", 18: "Drama", 10751: "Family", 14: "Fantasy", 36: "History",
   27: "Horror", 10402: "Music", 9648: "Mystery", 10749: "Romance", 878: "Science Fiction",
   10770: "TV Movie", 53: "Thriller", 10752: "War", 37: "Western"
@@ -73,59 +72,59 @@ export default function BrowseClient({ initialData }: Props) {
   }, [contentType, sortBy, isSearchMode, initialData]);
 
   // Fetch movies based on current filters and search
-const fetchMovies = useCallback(async (page: number = 1, search: string = '') => {
-  setLoading(true);
-  try {
-    let response;
+  const fetchMovies = useCallback(async (page: number = 1, search: string = '') => {
+    setLoading(true);
+    try {
+      let response;
 
-    if (search.trim()) {
-      setIsSearchMode(true);
+      if (search.trim()) {
+        setIsSearchMode(true);
 
-      // Calling different endpoints based on content type
-      let apiUrl = `/api/search`;
-      if (contentType === 'movie') {
-        apiUrl = `/api/search/movies?query=${encodeURIComponent(search)}&page=${page}`;
-      } else if (contentType === 'tv') {
-        apiUrl = `/api/search/tv?query=${encodeURIComponent(search)}&page=${page}`;
-      } else {
-        apiUrl = `/api/search/multi?query=${encodeURIComponent(search)}&page=${page}`;
-      }
-
-      const res = await fetch(apiUrl);
-      if (!res.ok) throw new Error("Failed to fetch search results");
-      response = await res.json();
-
-      const convertedMovies = response.results.map(tmdbToMovie);
-      const sortedMovies = sortMovies(convertedMovies, sortBy);
-
-      setMovies(sortedMovies);
-      setTotalPages(response.total_pages);
-    } else {
-      setIsSearchMode(false);
-      // Keep your existing logic for browsing without search
-      if (page > 1) {
+        // Calling different endpoints based on content type
+        let apiUrl = `/api/search`;
         if (contentType === 'movie') {
-          response = await tmdbApi.getPopularMovies(page);
+          apiUrl = `/api/search/movies?query=${encodeURIComponent(search)}&page=${page}`;
         } else if (contentType === 'tv') {
-          response = await tmdbApi.getPopularTVShows(page);
+          apiUrl = `/api/search/tv?query=${encodeURIComponent(search)}&page=${page}`;
         } else {
-          response = await tmdbApi.getTrending('week', page);
+          apiUrl = `/api/search/multi?query=${encodeURIComponent(search)}&page=${page}`;
         }
+
+        const res = await fetch(apiUrl);
+        if (!res.ok) throw new Error("Failed to fetch search results");
+        response = await res.json();
 
         const convertedMovies = response.results.map(tmdbToMovie);
         const sortedMovies = sortMovies(convertedMovies, sortBy);
 
         setMovies(sortedMovies);
         setTotalPages(response.total_pages);
+      } else {
+        setIsSearchMode(false);
+        // Keep your existing logic for browsing without search
+        if (page > 1) {
+          if (contentType === 'movie') {
+            response = await tmdbApi.getPopularMovies(page);
+          } else if (contentType === 'tv') {
+            response = await tmdbApi.getPopularTVShows(page);
+          } else {
+            response = await tmdbApi.getTrending('week', page);
+          }
+
+          const convertedMovies = response.results.map(tmdbToMovie);
+          const sortedMovies = sortMovies(convertedMovies, sortBy);
+
+          setMovies(sortedMovies);
+          setTotalPages(response.total_pages);
+        }
       }
+    } catch (error) {
+      console.error('Error fetching movies:', error);
+      setMovies([]);
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error('Error fetching movies:', error);
-    setMovies([]);
-  } finally {
-    setLoading(false);
-  }
-}, [contentType, sortBy]);
+  }, [contentType, sortBy]);
 
 
   const sortMovies = (movieList: Movie[], sortType: string): Movie[] => {
@@ -167,14 +166,6 @@ const fetchMovies = useCallback(async (page: number = 1, search: string = '') =>
     }
   }, [currentPage, fetchMovies, searchQuery]);
 
-  const handleViewDetails = (movie: Movie) => {
-    setSelectedMovie(movie);
-  };
-
-  const handleCloseDetails = () => {
-    setSelectedMovie(null);
-  };
-
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -184,7 +175,7 @@ const fetchMovies = useCallback(async (page: number = 1, search: string = '') =>
     const maxPagesToShow = 5;
     const startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
     const endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-    
+
     const pages = [];
     for (let i = startPage; i <= endPage; i++) {
       pages.push(i);
@@ -193,29 +184,28 @@ const fetchMovies = useCallback(async (page: number = 1, search: string = '') =>
     return (
       <div className="mt-8 flex justify-center">
         <nav className="flex items-center space-x-2">
-          <button 
+          <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
             className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Previous
           </button>
-          
+
           {pages.map(page => (
             <button
               key={page}
               onClick={() => handlePageChange(page)}
-              className={`px-3 py-2 text-sm rounded ${
-                page === currentPage 
-                  ? 'bg-blue-600 text-white' 
+              className={`px-3 py-2 text-sm rounded ${page === currentPage
+                  ? 'bg-blue-600 text-white'
                   : 'text-gray-500 hover:text-gray-700'
-              }`}
+                }`}
             >
               {page}
             </button>
           ))}
-          
-          <button 
+
+          <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
             className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -253,7 +243,7 @@ const fetchMovies = useCallback(async (page: number = 1, search: string = '') =>
             {/* Content Type Filter */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
-              <select 
+              <select
                 value={contentType}
                 onChange={(e) => setContentType(e.target.value as 'all' | 'movie' | 'tv')}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
@@ -267,7 +257,7 @@ const fetchMovies = useCallback(async (page: number = 1, search: string = '') =>
             {/* Sort Options */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
-              <select 
+              <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
@@ -279,7 +269,7 @@ const fetchMovies = useCallback(async (page: number = 1, search: string = '') =>
               </select>
             </div>
 
-            <button 
+            <button
               onClick={() => {
                 if (searchQuery.trim()) {
                   setCurrentPage(1);
@@ -299,9 +289,9 @@ const fetchMovies = useCallback(async (page: number = 1, search: string = '') =>
           <div className="flex justify-between items-center mb-6">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">
-                {searchQuery ? `Search Results for "${searchQuery}"` : 
-                 contentType === 'all' ? 'Trending Movies & TV Shows' :
-                 contentType === 'movie' ? 'Popular Movies' : 'Popular TV Shows'}
+                {searchQuery ? `Search Results for "${searchQuery}"` :
+                  contentType === 'all' ? 'Trending Movies & TV Shows' :
+                    contentType === 'movie' ? 'Popular Movies' : 'Popular TV Shows'}
               </h2>
               <p className="text-gray-600 mt-1">
                 Page {currentPage} of {totalPages} • {movies.length} results
@@ -323,10 +313,9 @@ const fetchMovies = useCallback(async (page: number = 1, search: string = '') =>
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {movies.map(movie => (
-                  <MovieCard 
-                    key={movie.id} 
-                    movie={movie} 
-                    onViewDetails={handleViewDetails}
+                  <MovieCard
+                    key={movie.id}
+                    movie={movie}
                   />
                 ))}
               </div>
@@ -336,15 +325,6 @@ const fetchMovies = useCallback(async (page: number = 1, search: string = '') =>
           )}
         </div>
       </div>
-
-      {/* Movie Detail Modal */}
-      {selectedMovie && (
-        <MovieDetail
-          movie={selectedMovie}
-          genres={genres}
-          onClose={handleCloseDetails}
-        />
-      )}
     </div>
   );
 }

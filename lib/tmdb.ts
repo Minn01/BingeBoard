@@ -33,22 +33,34 @@ export interface TMDBResponse {
 }
 
 // Convert TMDB movie to our Movie type
+// Convert TMDB movie/TV item to our Movie type
 export function tmdbToMovie(tmdbItem: TMDBMovie): import('../app/types/Movie').default {
+  const mediaType: 'movie' | 'tv' =
+    tmdbItem.media_type === 'movie' || tmdbItem.media_type === 'tv'
+      ? tmdbItem.media_type
+      : tmdbItem.title || tmdbItem.release_date
+        ? 'movie'
+        : 'tv';
+
   return {
     id: tmdbItem.id,
+    mediaType,
     title: tmdbItem.title || tmdbItem.name || 'Unknown Title',
     poster_path: tmdbItem.poster_path,
     release_date: tmdbItem.release_date || tmdbItem.first_air_date || '',
     vote_average: Math.round(tmdbItem.vote_average * 10) / 10,
     genre_ids: tmdbItem.genre_ids,
     overview: tmdbItem.overview,
+
     // User-specific fields will be undefined for API data
     userStatus: undefined,
     userRating: undefined,
     episodesWatched: undefined,
     totalEpisodes: tmdbItem.number_of_episodes,
+    totalSeasons: tmdbItem.number_of_seasons
   };
 }
+
 
 export class TMDBApi {
   private baseUrl = TMDB_BASE_URL;
@@ -56,7 +68,7 @@ export class TMDBApi {
 
   async fetchFromTMDB(endpoint: string): Promise<any> {
     const url = `${this.baseUrl}${endpoint}${endpoint.includes('?') ? '&' : '?'}api_key=${this.apiKey}`;
-    
+
     try {
       const response = await fetch(url);
       if (!response.ok) {
@@ -109,7 +121,7 @@ export class TMDBApi {
       this.fetchFromTMDB('/genre/movie/list'),
       this.fetchFromTMDB('/genre/tv/list')
     ]);
-    
+
     return {
       movie_genres: movieGenres.genres,
       tv_genres: tvGenres.genres

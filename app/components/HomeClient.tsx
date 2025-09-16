@@ -5,7 +5,6 @@ import Movie from "../types/Movie"
 import { useState, useEffect } from "react"
 import HeroCarousel from "../components/HeroCarousel"
 import MovieCarousel from "../components/MovieCarousel"
-import MovieDetail from "../components/MovieDetail"
 import { Clock, Eye, Heart, List } from "lucide-react"
 
 const genres: { [key: number]: string } = {
@@ -24,13 +23,9 @@ type Props = {
 };
 
 export default function HomeClient({ trending, popularMovies, popularTvShows, topRated, upcoming }: Props) {
-    const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
     const [user, setUser] = useState<{ username: string } | null>(null); // Add user state
 
     // Keep your old handlers
-    const handleViewDetails = (movie: Movie) => setSelectedMovie(movie);
-    const handleCloseDetails = () => setSelectedMovie(null);
-    const handlePlayMovie = (movie: Movie) => setSelectedMovie(movie);
     const handleAddToList = (movie: Movie) => alert(`Added "${movie.title}" to your watchlist!`);
 
     useEffect(() => {
@@ -53,8 +48,6 @@ export default function HomeClient({ trending, popularMovies, popularTvShows, to
             {trending.length > 0 && (
                 <HeroCarousel
                     movies={trending}
-                    onViewDetails={handleViewDetails}
-                    onPlayMovie={handlePlayMovie}
                     onAddToList={handleAddToList}
                 />
             )}
@@ -113,7 +106,6 @@ export default function HomeClient({ trending, popularMovies, popularTvShows, to
                         <MovieCarousel
                             title="🍿 Popular Movies"
                             movies={popularMovies}
-                            onViewDetails={handleViewDetails}
                             slidesPerView={{ mobile: 1.2, tablet: 2.5, desktop: 4.5 }}
                         />
                     )}
@@ -122,7 +114,6 @@ export default function HomeClient({ trending, popularMovies, popularTvShows, to
                         <MovieCarousel
                             title="⭐ Top Rated Movies"
                             movies={topRated}
-                            onViewDetails={handleViewDetails}
                             slidesPerView={{ mobile: 1.2, tablet: 2.5, desktop: 4.5 }}
                         />
                     )}
@@ -131,7 +122,6 @@ export default function HomeClient({ trending, popularMovies, popularTvShows, to
                         <MovieCarousel
                             title="📺 Popular TV Shows"
                             movies={popularTvShows}
-                            onViewDetails={handleViewDetails}
                             slidesPerView={{ mobile: 1.2, tablet: 2.5, desktop: 4.5 }}
                         />
                     )}
@@ -140,21 +130,11 @@ export default function HomeClient({ trending, popularMovies, popularTvShows, to
                         <MovieCarousel
                             title="🎬 Coming Soon"
                             movies={upcoming}
-                            onViewDetails={handleViewDetails}
                             slidesPerView={{ mobile: 1.2, tablet: 2.5, desktop: 4.5 }}
                         />
                     )}
                 </div>
             </div>
-
-            {/* Movie Detail Modal */}
-            {selectedMovie && (
-                <MovieDetail
-                    movie={selectedMovie}
-                    genres={genres}
-                    onClose={handleCloseDetails}
-                />
-            )}
         </div>
     );
 }

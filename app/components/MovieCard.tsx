@@ -1,28 +1,27 @@
 'use client'
 import { Star, Plus, Info } from "lucide-react"
 import Movie from "../types/Movie"
+import { useRouter } from "next/navigation"
 
 interface MovieCardProps {
     movie: Movie;
-    onViewDetails?: (movie: Movie) => void;
     compact?: boolean; // New prop for carousel version
 }
 
-function MovieCard({ movie, onViewDetails, compact = false }: MovieCardProps) { 
-   const handleViewDetails = () => {
-       if (onViewDetails) {
-           onViewDetails(movie);
-       } else {
-           console.log('View details for:', movie.title);
-       }
-   };
+function MovieCard({ movie, compact = false }: MovieCardProps) {
+    const router = useRouter();
 
-   const year = movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A';
-   const posterUrl = movie.poster_path 
-       ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` 
-       : '/api/placeholder/300/450';
+    // TODO: check if this works
+    const handleViewDetails = () => {
+        router.push(`/details/${movie.mediaType}/${movie.id}`)
+    }
 
-   return (
+    const year = movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A';
+    const posterUrl = movie.poster_path
+        ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+        : '/api/placeholder/300/450';
+
+    return (
         <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 group h-full flex flex-col">
             <div className="relative flex-shrink-0">
                 <img
@@ -31,11 +30,17 @@ function MovieCard({ movie, onViewDetails, compact = false }: MovieCardProps) {
                     className="w-full h-64 sm:h-72 object-cover group-hover:scale-105 transition-transform duration-300"
                     loading="lazy"
                 />
-                
+
                 {/* Overlay on hover - Changed to show info instead of play */}
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                     <button
-                        onClick={handleViewDetails}
+                        onClick={
+                            () => {
+                                console.log(movie);
+                                handleViewDetails()
+                            }
+
+                        }
                         className="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 transform scale-75 group-hover:scale-100 transition-transform duration-300"
                     >
                         <Info className="w-5 h-5" />
@@ -45,12 +50,11 @@ function MovieCard({ movie, onViewDetails, compact = false }: MovieCardProps) {
                 {/* Status Badge */}
                 <div className="absolute top-2 right-2">
                     {movie.userStatus && (
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold backdrop-blur-sm ${
-                            movie.userStatus === 'watched' ? 'bg-green-100/90 text-green-800' :
-                            movie.userStatus === 'watching' ? 'bg-blue-100/90 text-blue-800' :
-                            movie.userStatus === 'want_to_watch' ? 'bg-yellow-100/90 text-yellow-800' :
-                            'bg-gray-100/90 text-gray-800'
-                        }`}>
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold backdrop-blur-sm ${movie.userStatus === 'watched' ? 'bg-green-100/90 text-green-800' :
+                                movie.userStatus === 'watching' ? 'bg-blue-100/90 text-blue-800' :
+                                    movie.userStatus === 'want_to_watch' ? 'bg-yellow-100/90 text-yellow-800' :
+                                        'bg-gray-100/90 text-gray-800'
+                            }`}>
                             {movie.userStatus === 'want_to_watch' ? 'Want to Watch' :
                                 movie.userStatus.charAt(0).toUpperCase() + movie.userStatus.slice(1)}
                         </span>
@@ -109,7 +113,7 @@ function MovieCard({ movie, onViewDetails, compact = false }: MovieCardProps) {
                         <Info className="w-4 h-4" />
                         <span>Details & Review</span>
                     </button>
-                    <button 
+                    <button
                         className="p-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                         title="Add to Watchlist"
                     >
@@ -118,7 +122,7 @@ function MovieCard({ movie, onViewDetails, compact = false }: MovieCardProps) {
                 </div>
             </div>
         </div>
-   )  
+    )
 }
 
 export default MovieCard

@@ -121,7 +121,8 @@ function Header() {
         setShowSearchResults(false);
         setSearchQuery('');
         // Navigate to movie/TV detail page when implemented
-        console.log('Selected movie:', movie);
+        // TODO: check if this works
+        moveTo(`/details/${movie.media_type}/${movie.id}`)
     };
 
     const clearSearch = () => {

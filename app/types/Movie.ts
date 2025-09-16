@@ -1,6 +1,7 @@
 // types/Movie.ts
 type Movie = {
     id: number;
+    mediaType: string,
     title: string;
     poster_path: string | null;
     release_date: string;
@@ -11,6 +12,7 @@ type Movie = {
     userRating?: number | null;
     episodesWatched?: number;
     totalEpisodes?: number;
+    totalSeasons?: number
 };
 
 export default Movie;
