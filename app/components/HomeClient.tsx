@@ -1,4 +1,3 @@
-// app/HomeClient.tsx
 'use client'
 
 import Movie from "../types/Movie"
@@ -6,6 +5,7 @@ import { useState, useEffect } from "react"
 import HeroCarousel from "../components/HeroCarousel"
 import MovieCarousel from "../components/MovieCarousel"
 import { Clock, Eye, Heart, List } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 const genres: { [key: number]: string } = {
     28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy", 80: "Crime",
@@ -13,6 +13,14 @@ const genres: { [key: number]: string } = {
     27: "Horror", 10402: "Music", 9648: "Mystery", 10749: "Romance", 878: "Science Fiction",
     10770: "TV Movie", 53: "Thriller", 10752: "War", 37: "Western"
 };
+
+interface UserStats {
+    watched: number;
+    watching: number;
+    wantToWatch: number;
+    favorites: number;
+    total: number;
+}
 
 type Props = {
     trending: Movie[];
@@ -23,24 +31,95 @@ type Props = {
 };
 
 export default function HomeClient({ trending, popularMovies, popularTvShows, topRated, upcoming }: Props) {
-    const [user, setUser] = useState<{ username: string } | null>(null); // Add user state
+    const router = useRouter();
+    const [user, setUser] = useState<{ username: string } | null>(null);
+    const [stats, setStats] = useState<UserStats>({
+        watched: 0,
+        watching: 0,
+        wantToWatch: 0,
+        favorites: 0,
+        total: 0
+    });
+    const [statsLoading, setStatsLoading] = useState(true);
 
     // Keep your old handlers
-    const handleAddToList = (movie: Movie) => alert(`Added "${movie.title}" to your watchlist!`);
+    const handleSetFavorite = async (movie: Movie) => {
+        try {
+            const response = await fetch('/api/interactions/set_favorite', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    tmdbId: movie.id,
+                    mediaType: movie.mediaType,
+                    isFavorite: true
+                })
+            });
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    // Redirect to login or show auth modal
+                    window.location.href = '/login';
+                    return;
+                }
+
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            window.alert("Added to favorites")
+            // Show success message (optional)
+            console.log(result.message); // "Added to favorites" or "Removed from favorites"
+
+        } catch {
+
+        }
+    }
 
     useEffect(() => {
-        const fetchUser = async () => {
+        const fetchUserAndStats = async () => {
             try {
-                const res = await fetch('/api/me');
-                if (!res.ok) throw new Error('Not logged in');
-                const data = await res.json();
-                setUser(data.user); 
+                // Fetch user info
+                const userRes = await fetch('/api/me');
+                if (userRes.ok) {
+                    const userData = await userRes.json();
+                    setUser(userData.user);
+
+                    // Fetch user stats
+                    setStatsLoading(true);
+                    const statsRes = await fetch('/api/stats');
+                    if (statsRes.ok) {
+                        const statsData = await statsRes.json();
+                        setStats(statsData);
+                    } else {
+                        console.error('Failed to fetch stats');
+                    }
+                } else {
+                    console.log('User not logged in');
+                }
             } catch (err) {
-                console.error(err);
+                console.error('Error fetching user data:', err);
+            } finally {
+                setStatsLoading(false);
             }
         };
-        fetchUser();
+
+        fetchUserAndStats();
     }, []);
+
+    const navigateToWatchlist = (status?: string) => {
+        if (status) {
+            router.push(`/my-list?status=${status.toLowerCase().replace(/ /g, '_')}`);
+        } else {
+            router.push('/my-list');
+        }
+    };
+
+    const navigateToProfile = () => {
+        router.push('/profile');
+    };
 
     return (
         <div className="w-full overflow-x-hidden">
@@ -48,7 +127,7 @@ export default function HomeClient({ trending, popularMovies, popularTvShows, to
             {trending.length > 0 && (
                 <HeroCarousel
                     movies={trending}
-                    onAddToList={handleAddToList}
+                    onAddToList={handleSetFavorite}
                 />
             )}
 
@@ -56,45 +135,70 @@ export default function HomeClient({ trending, popularMovies, popularTvShows, to
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Welcome Section */}
                 <div className="mb-8">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome, {user?.username}!</h2>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                        Welcome{user ? `, ${user.username}` : ''}!
+                    </h2>
                     <p className="text-gray-600">Continue your movie and TV journey</p>
                 </div>
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+                    <div onClick={() => { navigateToWatchlist('Watched') }}
+                        className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
                         <div className="flex items-center">
                             <Eye className="h-8 w-8 text-blue-600" />
                             <div className="ml-4">
                                 <p className="text-sm font-medium text-gray-500">Watched</p>
-                                <p className="text-2xl font-bold text-gray-900">42</p>
+                                {statsLoading ? (
+                                    <div className="animate-pulse bg-gray-200 h-8 w-12 rounded"></div>
+                                ) : (
+                                    <p className="text-2xl font-bold text-gray-900">{stats.watched}</p>
+                                )}
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+
+                    <div onClick={() => { navigateToWatchlist('Watching') }}
+                        className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
                         <div className="flex items-center">
                             <Clock className="h-8 w-8 text-yellow-600" />
                             <div className="ml-4">
                                 <p className="text-sm font-medium text-gray-500">Watching</p>
-                                <p className="text-2xl font-bold text-gray-900">3</p>
+                                {statsLoading ? (
+                                    <div className="animate-pulse bg-gray-200 h-8 w-12 rounded"></div>
+                                ) : (
+                                    <p className="text-2xl font-bold text-gray-900">{stats.watching}</p>
+                                )}
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+
+                    <div onClick={() => { navigateToWatchlist('Watching') }}
+                        className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
                         <div className="flex items-center">
                             <List className="h-8 w-8 text-green-600" />
                             <div className="ml-4">
                                 <p className="text-sm font-medium text-gray-500">Want to Watch</p>
-                                <p className="text-2xl font-bold text-gray-900">15</p>
+                                {statsLoading ? (
+                                    <div className="animate-pulse bg-gray-200 h-8 w-12 rounded"></div>
+                                ) : (
+                                    <p className="text-2xl font-bold text-gray-900">{stats.wantToWatch}</p>
+                                )}
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+
+                    <div onClick={navigateToProfile}
+                        className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
                         <div className="flex items-center">
                             <Heart className="h-8 w-8 text-red-600" />
                             <div className="ml-4">
                                 <p className="text-sm font-medium text-gray-500">Favorites</p>
-                                <p className="text-2xl font-bold text-gray-900">8</p>
+                                {statsLoading ? (
+                                    <div className="animate-pulse bg-gray-200 h-8 w-12 rounded"></div>
+                                ) : (
+                                    <p className="text-2xl font-bold text-gray-900">{stats.favorites}</p>
+                                )}
                             </div>
                         </div>
                     </div>

@@ -21,8 +21,8 @@ function LogoutButton() {
                 }
             }} 
             title="Logout"
-            className="ml-2 hover:text-blue-200">
-            <LogOut className="w-4 h-4" />
+            className="ml-2 hover:text-red-200">
+            <LogOut className="w-6 h-6" />
         </button>
     )
 }

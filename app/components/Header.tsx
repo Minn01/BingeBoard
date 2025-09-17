@@ -4,7 +4,6 @@ import { Search, Home, User, X } from "lucide-react"
 import { useState, useEffect, useRef } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import LogoutButton from "./LogoutButton"
-import { getUserFromRequest } from "@/lib/auth"
 
 interface SearchResult {
     id: number;
@@ -25,7 +24,7 @@ function Header() {
     const pathname = usePathname();
     const searchRef = useRef<HTMLDivElement>(null);
     const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const [user, setUser] = useState<{ username: string } | null>(null); 
+    const [user, setUser] = useState<{ username: string } | null>(null);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -33,7 +32,7 @@ function Header() {
                 const res = await fetch('/api/me');
                 if (!res.ok) throw new Error('Not logged in');
                 const data = await res.json();
-                setUser(data.user); 
+                setUser(data.user);
             } catch (err) {
                 console.error(err);
             }
@@ -121,7 +120,6 @@ function Header() {
         setShowSearchResults(false);
         setSearchQuery('');
         // Navigate to movie/TV detail page when implemented
-        // TODO: check if this works
         moveTo(`/details/${movie.media_type}/${movie.id}`)
     };
 
@@ -259,11 +257,16 @@ function Header() {
                             </button>
                         </nav>
 
-                        <div className="flex items-center space-x-2">
+                        <div onClick={
+                            () => { 
+                                moveTo('profile');
+                            }
+                        }
+                            className={`flex items-center space-x-2 hover:text-blue-200 cursor-pointer ${currentPage === "profile" ? 'text-blue-200' : ''}`}>
                             <User className="w-6 h-6" />
                             <span className="font-medium">{user?.username}</span>
-                            <LogoutButton />
                         </div>
+                        <LogoutButton />
                     </div>
                 </div>
             </div>

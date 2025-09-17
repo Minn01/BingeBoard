@@ -1,3 +1,4 @@
+// lib/mongoose.ts - Updated version with SSL fix
 import mongoose from "mongoose";
 
 // check if MONGODB_URI is defined
@@ -19,16 +20,37 @@ if (!cached) {
 async function connect() {
   // Return cached connection if it exists
   if (cached.conn) return cached.conn;
-
+  
   // Create a new connection promise if it doesn't exist
   if (!cached.promise) {
-    cached.promise = mongoose.connect(uri).then((mongoose) => mongoose);
-  }
+    const opts = {
+      bufferCommands: false,
+      // SSL/TLS options to fix the connection error
+      ssl: true,
+      tlsAllowInvalidCertificates: true,
+      serverSelectionTimeoutMS: 10000, // 10 seconds timeout
+      socketTimeoutMS: 45000, // 45 seconds timeout
+    };
 
+    cached.promise = mongoose.connect(uri, opts).then((mongoose) => {
+      console.log('MongoDB connected successfully');
+      return mongoose;
+    }).catch((error) => {
+      console.error('MongoDB connection error:', error);
+      cached.promise = null; // Reset promise on error
+      throw error;
+    });
+  }
+  
   // Await the connection promise and cache the connection
-  cached.conn = await cached.promise;
+  try {
+    cached.conn = await cached.promise;
+  } catch (e) {
+    cached.promise = null; // Reset promise on error
+    throw e;
+  }
+  
   return cached.conn;
 }
 
 export default connect;
-

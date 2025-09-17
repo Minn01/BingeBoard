@@ -24,7 +24,7 @@ function HeroCarousel({
     onAddToList
 }: HeroCarouselProps) {
     const router = useRouter();
-    // TODO : check if this works
+
     const handleViewDetail = (movie: Movie) => {
         router.push(`/details/${movie.mediaType}/${movie.id}`)
     }
@@ -134,7 +134,7 @@ function HeroCarousel({
                                                     className="bg-transparent border-2 border-white/70 text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/20 transition-colors flex items-center space-x-2"
                                                 >
                                                     <Plus className="w-5 h-5" />
-                                                    <span>Add to Watchlist</span>
+                                                    <span>Add to favorites</span>
                                                 </button>
                                             </div>
                                         </div>

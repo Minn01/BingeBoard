@@ -9,9 +9,42 @@ interface MovieCardProps {
 }
 
 function MovieCard({ movie, compact = false }: MovieCardProps) {
+    const handleSetFavorite = async (movie: Movie) => {
+        try {
+            const response = await fetch('/api/interactions/set_favorite', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    tmdbId: movie.id,
+                    mediaType: movie.mediaType,
+                    isFavorite: true
+                })
+            });
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    // Redirect to login or show auth modal
+                    window.location.href = '/login';
+                    return;
+                }
+
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            window.alert("Added to favorites")
+            // Show success message (optional)
+            console.log(result.message); // "Added to favorites" or "Removed from favorites"
+
+        } catch {
+
+        }
+    }
     const router = useRouter();
 
-    // TODO: check if this works
     const handleViewDetails = () => {
         router.push(`/details/${movie.mediaType}/${movie.id}`)
     }
@@ -34,13 +67,7 @@ function MovieCard({ movie, compact = false }: MovieCardProps) {
                 {/* Overlay on hover - Changed to show info instead of play */}
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                     <button
-                        onClick={
-                            () => {
-                                console.log(movie);
-                                handleViewDetails()
-                            }
-
-                        }
+                        onClick={handleViewDetails}
                         className="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 transform scale-75 group-hover:scale-100 transition-transform duration-300"
                     >
                         <Info className="w-5 h-5" />
@@ -51,9 +78,9 @@ function MovieCard({ movie, compact = false }: MovieCardProps) {
                 <div className="absolute top-2 right-2">
                     {movie.userStatus && (
                         <span className={`px-2 py-1 rounded-full text-xs font-semibold backdrop-blur-sm ${movie.userStatus === 'watched' ? 'bg-green-100/90 text-green-800' :
-                                movie.userStatus === 'watching' ? 'bg-blue-100/90 text-blue-800' :
-                                    movie.userStatus === 'want_to_watch' ? 'bg-yellow-100/90 text-yellow-800' :
-                                        'bg-gray-100/90 text-gray-800'
+                            movie.userStatus === 'watching' ? 'bg-blue-100/90 text-blue-800' :
+                                movie.userStatus === 'want_to_watch' ? 'bg-yellow-100/90 text-yellow-800' :
+                                    'bg-gray-100/90 text-gray-800'
                             }`}>
                             {movie.userStatus === 'want_to_watch' ? 'Want to Watch' :
                                 movie.userStatus.charAt(0).toUpperCase() + movie.userStatus.slice(1)}
@@ -89,7 +116,7 @@ function MovieCard({ movie, compact = false }: MovieCardProps) {
                 )}
 
                 {/* Progress Bar for TV Shows */}
-                {movie.episodesWatched && movie.totalEpisodes && (
+                {movie.mediaType == 'tv' && movie.episodesWatched && movie.totalEpisodes && (
                     <div className="mb-3">
                         <div className="flex justify-between text-xs text-gray-500 mb-1">
                             <span>Progress</span>
@@ -114,6 +141,7 @@ function MovieCard({ movie, compact = false }: MovieCardProps) {
                         <span>Details & Review</span>
                     </button>
                     <button
+                        onClick={() => handleSetFavorite(movie)}
                         className="p-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                         title="Add to Watchlist"
                     >

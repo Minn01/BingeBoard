@@ -1,11 +1,11 @@
 // endpoint: api/interactions
 import { NextResponse, NextRequest } from "next/server";
-import dbConnect from "@/lib/mongoose"; 
+import connect from "@/lib/mongoose"; 
 import UserMovieInteraction from "@/models/UserMovieInteraction";
 
 // GET - fetch interactions (filter by userId, tmdbId, mediaType)
 export async function GET(req: NextRequest) {
-  await dbConnect();
+  await connect();
   const searchParams = req.nextUrl.searchParams; 
   const userId = searchParams.get("userId");
   const tmdbId = searchParams.get("tmdbId");
@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
 
 // POST - create or update interaction
 export async function POST(req: NextRequest) {
-  await dbConnect();
+  await connect();
   const body = await req.json();
 
   const interaction = await UserMovieInteraction.findOneAndUpdate(
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 
 // DELETE - remove interaction
 export async function DELETE(req: NextRequest) {
-  await dbConnect();
+  await connect();
   const searchParams = req.nextUrl.searchParams; 
   const userId = searchParams.get("userId");
   const tmdbId = searchParams.get("tmdbId");

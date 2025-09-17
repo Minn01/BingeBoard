@@ -39,6 +39,7 @@ interface Review {
     likes: string[]; // array of user IDs who liked
     dislikes: string[]; // array of user IDs who disliked
     hasSpoilers: boolean;
+    createdAt: Date
 }
 
 // Genre mapping
@@ -48,6 +49,45 @@ const genres: { [key: number]: string } = {
     27: "Horror", 10402: "Music", 9648: "Mystery", 10749: "Romance", 878: "Science Fiction",
     10770: "TV Movie", 53: "Thriller", 10752: "War", 37: "Western"
 };
+
+function timeAgo(inputDate: Date) {
+    const now = new Date();
+    const date = new Date(inputDate);
+    const seconds = Math.floor((now - date) / 1000);
+
+    if (seconds < 60) {
+        return "just now";
+    }
+
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) {
+        return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
+    }
+
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) {
+        return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
+    }
+
+    const days = Math.floor(hours / 24);
+    if (days < 7) {
+        return `${days} day${days !== 1 ? "s" : ""} ago`;
+    }
+
+    const weeks = Math.floor(days / 7);
+    if (weeks < 4) {
+        return `${weeks} week${weeks !== 1 ? "s" : ""} ago`;
+    }
+
+    const months = Math.floor(days / 30);
+    if (months < 12) {
+        return `${months} month${months !== 1 ? "s" : ""} ago`;
+    }
+
+    const years = Math.floor(days / 365);
+    return `${years} year${years !== 1 ? "s" : ""} ago`;
+}
+
 
 // TODO: ignore some of the typescript errors it works regardless
 export default function MovieDetailsPage() {
@@ -216,6 +256,59 @@ export default function MovieDetailsPage() {
         }
     };
 
+    const handleSetFavorite = async () => {
+        if (loading) return; // Prevent multiple clicks
+
+        setLoading(true);
+        const newFavoriteStatus = !isFavorite;
+
+        try {
+            const response = await fetch('/api/interactions/set_favorite', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    tmdbId: id,
+                    mediaType: mediaType,
+                    isFavorite: newFavoriteStatus
+                })
+            });
+
+            if (!response.ok) {
+                // Revert optimistic update if request failed
+                setIsFavorite(!newFavoriteStatus);
+
+                if (response.status === 401) {
+                    // Redirect to login or show auth modal
+                    window.location.href = '/login';
+                    return;
+                }
+
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            // Show success message (optional)
+            console.log(result.message); // "Added to favorites" or "Removed from favorites"
+
+            // You could also show a toast notification here
+            // toast.success(result.message);
+
+        } catch (error) {
+            console.error('Error updating favorite status:', error);
+
+            // Revert optimistic update
+            setIsFavorite(!newFavoriteStatus);
+
+            // Show error message to user
+            // toast.error('Failed to update favorite status');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleSaveInteraction = async () => {
         try {
             const body = {
@@ -277,7 +370,7 @@ export default function MovieDetailsPage() {
             rating: newReview.rating,
             hasSpoilers: newReview.hasSpoilers,
             likes: [],
-            dislikes: []
+            dislikes: [],
         };
 
         console.log("user: " + user._id + ", username : " + user.username);
@@ -450,7 +543,10 @@ export default function MovieDetailsPage() {
                             </button>
                             <button
                                 className={`px-6 py-2 rounded-lg transition-colors border ${isFavorite ? "bg-red-600 border-red-600" : "border-gray-500 hover:bg-gray-800"}`}
-                                onClick={() => setIsFavorite(!isFavorite)}
+                                onClick={() => {
+                                    setIsFavorite(!isFavorite)
+                                    handleSetFavorite()
+                                }}
                             >
                                 {isFavorite ? "Remove Favorite" : "Add to Favorites"}
                             </button>
@@ -617,7 +713,7 @@ export default function MovieDetailsPage() {
                                                 id={review._id}
                                                 initials={review.username?.[0].toUpperCase() ?? "?"}
                                                 name={review.username ?? "Unknown"}
-                                                timeAgo="just now" // You can replace with formatted timestamp
+                                                timeAgo={`${timeAgo(review.createdAt)}`} // You can replace with formatted timestamp
                                                 rating={review.rating}
                                                 reviewText={review.reviewText}
                                                 helpfulCount={Array.isArray(review.likes) ? review.likes.length : 0}
