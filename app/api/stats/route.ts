@@ -1,4 +1,3 @@
-// app/api/stats/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getUserFromRequest } from '@/lib/auth';
 import connect from "@/lib/mongoose";

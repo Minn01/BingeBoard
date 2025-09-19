@@ -1,4 +1,3 @@
-// app/api/interactions/average/route.ts
 import dbConnect from "@/lib/mongoose";
 import UserMovieInteraction from "@/models/UserMovieInteraction";
 import { NextRequest, NextResponse } from "next/server";

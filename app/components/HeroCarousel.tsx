@@ -30,7 +30,6 @@ function HeroCarousel({
     }
 
     useEffect(() => {
-        // Swiper styles are imported globally, no need to do anything here
         console.log('HeroCarousel mounted');
     }, []);
 

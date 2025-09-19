@@ -25,19 +25,16 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 } */
 
-/* Add this to your globals.css - REPLACE the old Swiper styles */
-
-/* Fix horizontal overflow - CRITICAL for preventing page scroll */
 body {
   overflow-x: hidden !important;
 }
 
-/* Main container overflow fix */
+/* Main container overflow */
 .max-w-7xl {
   overflow-x: hidden !important;
 }
 
-/* Hide default Swiper navigation buttons since we use custom ones */
+/* Hide default Swiper navigation buttons */
 .carousel-swiper .swiper-button-next,
 .carousel-swiper .swiper-button-prev {
   display: none !important;
@@ -57,7 +54,6 @@ body {
   box-sizing: border-box !important;
 }
 
-/* Individual slides should be properly sized */
 .carousel-swiper .swiper-slide {
   width: auto !important;
   flex-shrink: 0 !important;
@@ -70,7 +66,6 @@ body {
   height: 100%;
 }
 
-/* Custom Pagination Dots */
 .swiper-pagination-bullet {
   background-color: rgb(209 213 219) !important;
   width: 8px !important;
@@ -96,7 +91,7 @@ body {
   z-index: 10;
 }
 
-/* Custom scrollbar (if needed) */
+/* Custom scrollbar  */
 .swiper-scrollbar {
   background-color: rgb(229 231 235) !important;
   height: 3px !important;
@@ -111,7 +106,7 @@ body {
 /* Responsive adjustments */
 @media (max-width: 640px) {
   .carousel-swiper .swiper-slide > div {
-    width: 200px !important; /* Smaller on mobile */
+    width: 200px !important; 
   }
   
   .carousel-swiper .swiper-slide {
@@ -121,16 +116,14 @@ body {
 
 @media (max-width: 480px) {
   .carousel-swiper .swiper-slide > div {
-    width: 180px !important; /* Even smaller on very small screens */
+    width: 180px !important;
   }
 }
 
-/* Prevent any overflow on the main container */
 html {
   overflow-x: hidden !important;
 }
 
-/* Add this to your globals.css - Hero Carousel Styles */
 
 /* Hero Swiper Container */
 .hero-swiper {
@@ -234,4 +227,173 @@ html {
   overflow: hidden !important;
 }
 
+.bg-playstation-blue {
+  background-color: #003087;
+}
 
+
+.login-bg {
+  background-image: url('/login_bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  position: relative;
+  min-height: 100vh;
+  background-color: #1a1a1a;
+}
+
+/* Enhanced blur overlay for background */
+.login-bg::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  backdrop-filter: blur(12px) brightness(0.7);
+  -webkit-backdrop-filter: blur(12px) brightness(0.7);
+  background: rgba(0, 0, 0, 0.4); 
+  z-index: 1;
+}
+
+.login-content {
+  position: relative;
+  z-index: 2;
+}
+
+/* Enhanced liquid glass login box */
+.glass-login-box {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(25px) saturate(200%) contrast(120%);
+  -webkit-backdrop-filter: blur(25px) saturate(200%) contrast(120%);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 
+    0 30px 60px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Add subtle glow effect */
+.glass-login-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.4), 
+    transparent
+  );
+}
+
+/* Enhanced glass input fields */
+.glass-input {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.glass-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.glass-input:focus {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.5);
+  outline: none;
+  box-shadow: 
+    0 0 25px rgba(255, 255, 255, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+/* Enhanced glass button */
+.glass-button {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.2), 
+    transparent
+  );
+  transition: left 0.6s ease;
+}
+
+.glass-button:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 15px 35px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.glass-button:hover::before {
+  left: 100%;
+}
+
+.glass-button:active {
+  transform: translateY(0);
+}
+
+/* Enhanced glass label styling */
+.glass-label {
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Title text enhancement */
+.glass-title {
+  color: white;
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* If image doesn't load, use gradient fallback */
+.login-bg-fallback {
+  background: linear-gradient(135deg, 
+    #667eea 0%, 
+    #764ba2 100%
+  );
+}
+
+/* Alternative: PlayStation themed background */
+.login-bg-playstation {
+  background: linear-gradient(135deg, 
+    #003087 0%, 
+    #00246d 50%,
+    #001a5c 100%
+  );
+}

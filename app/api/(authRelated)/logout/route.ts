@@ -1,4 +1,3 @@
-// app/api/logout/route.ts
 import { NextResponse } from "next/server";
 
 export async function POST() {
@@ -9,7 +8,7 @@ export async function POST() {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 0, // Immediately expire the cookie
+    maxAge: 0, // Expire the cookie immediately
   });
 
   return response;

@@ -1,4 +1,3 @@
-// types/Movie.ts
 type Movie = {
     id: number;
     mediaType: string,

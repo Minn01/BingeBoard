@@ -1,4 +1,3 @@
-// models/UserReview.ts
 import mongoose from "mongoose";
 
 const UserReviewSchema = new mongoose.Schema({

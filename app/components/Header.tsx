@@ -40,7 +40,6 @@ function Header() {
         fetchUser();
     }, []);
 
-
     // Update current page based on pathname
     useEffect(() => {
         if (pathname === '/') {
@@ -119,8 +118,8 @@ function Header() {
     const handleSearchItemClick = (movie: SearchResult) => {
         setShowSearchResults(false);
         setSearchQuery('');
-        // Navigate to movie/TV detail page when implemented
-        moveTo(`/details/${movie.media_type}/${movie.id}`)
+        // Fixed: Use router.push directly instead of moveTo
+        router.push(`/details/${movie.media_type}/${movie.id}`);
     };
 
     const clearSearch = () => {
@@ -140,7 +139,7 @@ function Header() {
     };
 
     return (
-        <header className="fixed w-full z-50 bg-gradient-to-r from-blue-900 to-purple-900 text-white shadow-lg">
+        <header className="fixed w-full z-50 bg-playstation-blue text-white shadow-lg">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center py-4">
                     <div className="flex items-center">
@@ -195,83 +194,80 @@ function Header() {
                                             <img
                                                 src={movie.poster_path ?
                                                     `https://image.tmdb.org/t/p/w92${movie.poster_path}` :
-                                                    '/api/placeholder/46/69'
+                                                    '/api/placeholder/92/138'
                                                 }
                                                 alt={movie.title}
                                                 className="w-12 h-16 object-cover rounded flex-shrink-0"
+                                                loading="lazy"
                                             />
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-medium text-gray-900 truncate">
                                                     {movie.title}
                                                 </p>
                                                 <p className="text-xs text-gray-500">
-                                                    {movie.media_type === 'tv' ? 'TV Show' : 'Movie'} •
+                                                    {movie.media_type === 'movie' ? 'Movie' : 'TV Show'} •{' '}
                                                     {movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}
                                                 </p>
                                                 <div className="flex items-center mt-1">
-                                                    <div className="flex items-center">
-                                                        <Search className="w-3 h-3 text-yellow-400 mr-1" />
-                                                        <span className="text-xs text-gray-600">
-                                                            {movie.vote_average.toFixed(1)}
-                                                        </span>
-                                                    </div>
+                                                    <Search className="w-3 h-3 text-yellow-500 mr-1" />
+                                                    <span className="text-xs text-gray-600">
+                                                        {movie.vote_average?.toFixed(1) || 'N/A'}
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
                                     ))}
-                                    {searchQuery.trim() && (
-                                        <button
-                                            onClick={() => handleSearchSubmit({ preventDefault: () => { } } as React.FormEvent)}
-                                            className="w-full text-left p-2 hover:bg-gray-50 rounded text-sm text-blue-600 font-medium border-t mt-1 pt-3"
-                                        >
-                                            See all results for "{searchQuery}"
-                                        </button>
-                                    )}
                                 </div>
                             </div>
                         )}
                     </div>
 
-                    <div className="flex items-center space-x-4">
-                        <nav className="flex space-x-6">
-                            <button
-                                onClick={() => moveTo('dashboard')}
-                                className={`flex items-center space-x-1 hover:text-blue-200 transition-colors ${currentPage === 'dashboard' ? 'text-blue-200' : ''}`}
-                            >
-                                <Home className="w-4 h-4" />
-                                <span>Dashboard</span>
-                            </button>
-                            <button
-                                onClick={() => moveTo('browse')}
-                                className={`flex items-center space-x-1 hover:text-blue-200 transition-colors ${currentPage === 'browse' ? 'text-blue-200' : ''}`}
-                            >
-                                <Search className="w-4 h-4" />
-                                <span>Browse</span>
-                            </button>
-                            <button
-                                onClick={() => moveTo('my-list')}
-                                className={`flex items-center space-x-1 hover:text-blue-200 transition-colors ${currentPage === 'my-list' ? 'text-blue-200' : ''}`}
-                            >
-                                <User className="w-4 h-4" />
-                                <span>My List</span>
-                            </button>
-                        </nav>
+                    {/* Navigation */}
+                    <nav className="hidden md:flex space-x-8">
+                        <button
+                            onClick={() => moveTo('dashboard')}
+                            className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${currentPage === 'dashboard'
+                                    ? 'bg-white/20 text-white'
+                                    : 'text-white/80 hover:text-white hover:bg-white/10'
+                                }`}
+                        >
+                            <Home className="w-4 h-4" />
+                            <span>Home</span>
+                        </button>
+                        <button
+                            onClick={() => moveTo('browse')}
+                            className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${currentPage === 'browse'
+                                    ? 'bg-white/20 text-white'
+                                    : 'text-white/80 hover:text-white hover:bg-white/10'
+                                }`}
+                        >
+                            Browse
+                        </button>
+                        <button
+                            onClick={() => moveTo('my-list')}
+                            className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${currentPage === 'my-list'
+                                    ? 'bg-white/20 text-white'
+                                    : 'text-white/80 hover:text-white hover:bg-white/10'
+                                }`}
+                        >
+                            My List
+                        </button>
+                    </nav>
 
-                        <div onClick={
-                            () => { 
-                                moveTo('profile');
-                            }
-                        }
-                            className={`flex items-center space-x-2 hover:text-blue-200 cursor-pointer ${currentPage === "profile" ? 'text-blue-200' : ''}`}>
-                            <User className="w-6 h-6" />
-                            <span className="font-medium">{user?.username}</span>
+                    {/* User Menu */}
+                    <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-2">
+                            <User className="w-5 h-5" />
+                            <span className="text-sm">
+                                {user ? `Welcome, ${user.username}!` : 'Loading...'}
+                            </span>
                         </div>
                         <LogoutButton />
                     </div>
                 </div>
             </div>
         </header>
-    );
+    )
 }
 
-export default Header;
+export default Header

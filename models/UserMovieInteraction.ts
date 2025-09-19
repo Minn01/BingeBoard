@@ -1,4 +1,3 @@
-// models/UserMovieInteraction.ts
 import mongoose from "mongoose";
 
 const UserMovieInteractionSchema = new mongoose.Schema({

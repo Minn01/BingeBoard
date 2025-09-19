@@ -1,4 +1,3 @@
-// app/api/login/route.ts
 import { NextResponse } from "next/server";
 import connect from "@/lib/mongoose";
 import User from "@/models/User";

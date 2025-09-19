@@ -1,4 +1,3 @@
-// app/page.tsx
 import { tmdbApi, tmdbToMovie } from "@/lib/tmdb";
 import HomeClient from "./components/HomeClient";
 

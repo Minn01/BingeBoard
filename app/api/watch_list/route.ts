@@ -1,4 +1,3 @@
-// app/api/watchlist/route.ts
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongoose";
 import UserMovieInteraction from "@/models/UserMovieInteraction";
@@ -29,9 +28,9 @@ export async function GET() {
                         // Transform data to match your Movie type
                         return {
                             id: details.id,
-                            title: details.title || details.name, // TV shows use 'name'
+                            title: details.title || details.name,
                             poster_path: details.poster_path,
-                            release_date: details.release_date || details.first_air_date, // TV shows use 'first_air_date'
+                            release_date: details.release_date || details.first_air_date,
                             vote_average: details.vote_average,
                             genre_ids: details.genre_ids || [],
                             overview: details.overview,

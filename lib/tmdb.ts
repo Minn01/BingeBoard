@@ -1,26 +1,23 @@
-// lib/tmdb.ts - TMDB API utilities
 export const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 export const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 
-// You need to get your API key from https://www.themoviedb.org/settings/api
 export const TMDB_API_KEY = process.env.TMDB_API_KEY || '';
 
 export interface TMDBMovie {
   id: number;
-  title?: string; // for movies
-  name?: string;  // for TV shows
+  title?: string;
+  name?: string;
   overview: string;
   poster_path: string | null;
   backdrop_path: string | null;
-  release_date?: string; // for movies
-  first_air_date?: string; // for TV shows
+  release_date?: string; 
+  first_air_date?: string;
   vote_average: number;
   vote_count: number;
   genre_ids: number[];
   adult?: boolean;
   original_language: string;
-  media_type?: 'movie' | 'tv' | 'person'; // Add media_type for search results
-  // TV show specific
+  media_type?: 'movie' | 'tv' | 'person'; 
   number_of_seasons?: number;
   number_of_episodes?: number;
 }
@@ -32,8 +29,6 @@ export interface TMDBResponse {
   total_results: number;
 }
 
-// Convert TMDB movie to our Movie type
-// Convert TMDB movie/TV item to our Movie type
 export function tmdbToMovie(tmdbItem: TMDBMovie): import('../app/types/Movie').default {
   const mediaType: 'movie' | 'tv' =
     tmdbItem.media_type === 'movie' || tmdbItem.media_type === 'tv'
@@ -52,7 +47,6 @@ export function tmdbToMovie(tmdbItem: TMDBMovie): import('../app/types/Movie').d
     genre_ids: tmdbItem.genre_ids,
     overview: tmdbItem.overview,
 
-    // User-specific fields will be undefined for API data
     userStatus: undefined,
     userRating: undefined,
     episodesWatched: undefined,

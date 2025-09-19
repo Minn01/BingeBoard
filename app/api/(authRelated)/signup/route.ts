@@ -1,4 +1,3 @@
-// app/api/signup/route.ts
 import { NextResponse } from "next/server";
 import User from "@/models/User";
 import bcrypt from "bcrypt";

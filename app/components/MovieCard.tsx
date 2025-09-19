@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 
 interface MovieCardProps {
     movie: Movie;
-    compact?: boolean; // New prop for carousel version
+    compact?: boolean;
 }
 
 function MovieCard({ movie, compact = false }: MovieCardProps) {
@@ -36,8 +36,8 @@ function MovieCard({ movie, compact = false }: MovieCardProps) {
             const result = await response.json();
 
             window.alert("Added to favorites")
-            // Show success message (optional)
-            console.log(result.message); // "Added to favorites" or "Removed from favorites"
+            // Show success message 
+            console.log(result.message); 
 
         } catch {
 

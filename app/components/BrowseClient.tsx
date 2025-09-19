@@ -4,6 +4,7 @@ import { Filter, Loader2 } from "lucide-react"
 import MovieCard from "../components/MovieCard"
 import Movie from "../types/Movie"
 import { useState, useEffect, useCallback } from "react"
+import { useSearchParams } from "next/navigation"
 import { tmdbApi, tmdbToMovie } from "../../lib/tmdb"
 
 const genres: { [key: number]: string } = {
@@ -30,6 +31,7 @@ type Props = {
 
 // Main Browse Client Component
 export default function BrowseClient({ initialData }: Props) {
+  const searchParams = useSearchParams();
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(false);
@@ -40,7 +42,33 @@ export default function BrowseClient({ initialData }: Props) {
   const [sortBy, setSortBy] = useState<'popularity' | 'rating' | 'release_date' | 'title'>('popularity');
   const [isSearchMode, setIsSearchMode] = useState(false);
 
-  // Initialize with server data
+  // Helper function to sort movies
+  const sortMovies = useCallback((moviesArray: Movie[], sortType: string): Movie[] => {
+    return [...moviesArray].sort((a, b) => {
+      switch (sortType) {
+        case 'title':
+          return a.title.localeCompare(b.title);
+        case 'rating':
+          return b.vote_average - a.vote_average;
+        case 'release_date':
+          return new Date(b.release_date || '').getTime() - new Date(a.release_date || '').getTime();
+        case 'popularity':
+        default:
+          return 0; // Keep original order (already sorted by popularity from API)
+      }
+    });
+  }, []);
+
+  // Initialize search query from URL parameters
+  useEffect(() => {
+    const urlSearchQuery = searchParams.get('search');
+    if (urlSearchQuery) {
+      setSearchQuery(urlSearchQuery);
+      setIsSearchMode(true);
+    }
+  }, [searchParams]);
+
+  // Initialize with server data when not in search mode
   useEffect(() => {
     if (!isSearchMode) {
       const getInitialMovies = () => {
@@ -69,7 +97,7 @@ export default function BrowseClient({ initialData }: Props) {
       setTotalPages(pages);
       setCurrentPage(1);
     }
-  }, [contentType, sortBy, isSearchMode, initialData]);
+  }, [contentType, sortBy, isSearchMode, initialData, sortMovies]);
 
   // Fetch movies based on current filters and search
   const fetchMovies = useCallback(async (page: number = 1, search: string = '') => {
@@ -94,56 +122,38 @@ export default function BrowseClient({ initialData }: Props) {
         if (!res.ok) throw new Error("Failed to fetch search results");
         response = await res.json();
 
-        const convertedMovies = response.results.map(tmdbToMovie);
-        const sortedMovies = sortMovies(convertedMovies, sortBy);
+        // Transform search results to Movie objects
+        const searchMovies = (response.results || [])
+          .filter((item: any) => item.media_type !== 'person')
+          .map((item: any) => ({
+            id: item.id,
+            title: item.title || item.name || 'Unknown Title',
+            poster_path: item.poster_path,
+            backdrop_path: item.backdrop_path,
+            release_date: item.release_date || item.first_air_date || '',
+            vote_average: item.vote_average || 0,
+            genre_ids: item.genre_ids || [],
+            overview: item.overview || '',
+            mediaType: item.media_type || 'movie',
+          }));
 
+        const sortedMovies = sortMovies(searchMovies, sortBy);
         setMovies(sortedMovies);
-        setTotalPages(response.total_pages);
+        setTotalPages(response.total_pages || 1);
       } else {
+        // When no search query, fall back to initial data
         setIsSearchMode(false);
-        // Keep your existing logic for browsing without search
-        if (page > 1) {
-          if (contentType === 'movie') {
-            response = await tmdbApi.getPopularMovies(page);
-          } else if (contentType === 'tv') {
-            response = await tmdbApi.getPopularTVShows(page);
-          } else {
-            response = await tmdbApi.getTrending('week', page);
-          }
-
-          const convertedMovies = response.results.map(tmdbToMovie);
-          const sortedMovies = sortMovies(convertedMovies, sortBy);
-
-          setMovies(sortedMovies);
-          setTotalPages(response.total_pages);
-        }
       }
     } catch (error) {
-      console.error('Error fetching movies:', error);
+      console.error("Error fetching movies:", error);
       setMovies([]);
+      setTotalPages(1);
     } finally {
       setLoading(false);
     }
-  }, [contentType, sortBy]);
+  }, [contentType, sortBy, sortMovies]);
 
-
-  const sortMovies = (movieList: Movie[], sortType: string): Movie[] => {
-    return [...movieList].sort((a, b) => {
-      switch (sortType) {
-        case 'rating':
-          return b.vote_average - a.vote_average;
-        case 'release_date':
-          return new Date(b.release_date).getTime() - new Date(a.release_date).getTime();
-        case 'title':
-          return a.title.localeCompare(b.title);
-        case 'popularity':
-        default:
-          return 0; // TMDB already returns by popularity
-      }
-    });
-  };
-
-  // Debounced search effect
+  // Handle search query changes with debouncing
   useEffect(() => {
     const delayedSearch = setTimeout(() => {
       if (searchQuery.trim()) {
@@ -158,6 +168,19 @@ export default function BrowseClient({ initialData }: Props) {
 
     return () => clearTimeout(delayedSearch);
   }, [searchQuery, fetchMovies]);
+
+  // Handle URL search parameter changes
+  useEffect(() => {
+    const urlSearchQuery = searchParams.get('search');
+    if (urlSearchQuery && urlSearchQuery !== searchQuery) {
+      setSearchQuery(urlSearchQuery);
+      fetchMovies(1, urlSearchQuery);
+    } else if (!urlSearchQuery && searchQuery) {
+      // Clear search if URL parameter is removed
+      setSearchQuery('');
+      setIsSearchMode(false);
+    }
+  }, [searchParams, searchQuery, fetchMovies]);
 
   // Handle page changes
   useEffect(() => {
@@ -300,27 +323,36 @@ export default function BrowseClient({ initialData }: Props) {
           </div>
 
           {loading ? (
-            <div className="flex justify-center items-center h-64">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-              <span className="ml-2 text-gray-600">Loading movies...</span>
-            </div>
-          ) : movies.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">No movies found.</p>
-              <p className="text-gray-400 text-sm mt-2">Try adjusting your search or filters.</p>
+            <div className="flex justify-center items-center py-12">
+              <div className="flex items-center space-x-2">
+                <Loader2 className="w-6 h-6 animate-spin" />
+                <span className="text-gray-600">Loading...</span>
+              </div>
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {movies.map(movie => (
-                  <MovieCard
-                    key={movie.id}
-                    movie={movie}
-                  />
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                {movies.map((movie) => (
+                  <MovieCard key={`${movie.id}-${movie.mediaType || 'movie'}`} movie={movie} />
                 ))}
               </div>
 
-              {totalPages > 1 && renderPagination()}
+              {movies.length === 0 && !loading && (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="text-gray-400 mb-4">
+                    <Filter className="w-16 h-16" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No results found</h3>
+                  <p className="text-gray-600 text-center">
+                    {searchQuery 
+                      ? `No movies or TV shows found for "${searchQuery}". Try adjusting your search terms.`
+                      : 'No content available for the selected filters. Try changing your filter options.'
+                    }
+                  </p>
+                </div>
+              )}
+
+              {movies.length > 0 && totalPages > 1 && renderPagination()}
             </>
           )}
         </div>

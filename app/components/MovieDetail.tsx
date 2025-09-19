@@ -5,9 +5,9 @@ import Movie from "../types/Movie"
 import StarRating from './StarRating'
 
 type MovieDetailProps = {
-    movie: Movie & { genre_ids: number[] }; // Assuming genre_ids is part of the movie object
-    genres: { [key: number]: string }; // Mapping of genre IDs to genre names
-    onClose: () => void; // Add onClose handler
+    movie: Movie & { genre_ids: number[] };
+    genres: { [key: number]: string };
+    onClose: () => void; 
 }
 
 function MovieDetail({ movie, genres, onClose }: MovieDetailProps) {

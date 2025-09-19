@@ -1,6 +1,3 @@
-// Create this file: app/api/test-db/route.ts
-// This will help us test the database connection separately
-
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/mongoose";
 import UserMovieInteraction from "@/models/UserMovieInteraction";

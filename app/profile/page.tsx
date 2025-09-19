@@ -1,4 +1,3 @@
-// app/profile/page.tsx
 'use client'
 import { useEffect, useState } from "react";
 import { User, Calendar, Heart, LogOut } from "lucide-react";
@@ -42,9 +41,8 @@ function ProfilePage() {
                 }
                 
                 const profileData = await profileRes.json();
-                console.log("Profile data received:", profileData); // Debug log
+                console.log("Profile data received:", profileData); 
                 
-                // Your API returns { user: {...} }, so extract the user object
                 const userData = profileData.user;
                 setProfile({
                     id: userData._id,

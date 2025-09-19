@@ -36,8 +36,8 @@ interface Review {
     username: string;
     rating: number;
     reviewText: string;
-    likes: string[]; // array of user IDs who liked
-    dislikes: string[]; // array of user IDs who disliked
+    likes: string[];
+    dislikes: string[]; 
     hasSpoilers: boolean;
     createdAt: Date
 }

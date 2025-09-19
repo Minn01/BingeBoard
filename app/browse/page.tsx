@@ -1,4 +1,3 @@
-// app/browse/page.tsx (Server Component)
 import { tmdbApi, tmdbToMovie } from "@/lib/tmdb";
 import BrowseClient from '../components/BrowseClient';
 

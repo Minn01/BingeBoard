@@ -1,4 +1,3 @@
-// app/api/interactions/set_favorite/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getUserFromRequest } from '@/lib/auth';
 import connect from "@/lib/mongoose";
@@ -34,7 +33,7 @@ export async function PUT(req: NextRequest) {
             }, { status: 400 });
         }
 
-        // Validate isFavorite (should be boolean)
+        // Validate isFavorite
         if (typeof isFavorite !== 'boolean') {
             return NextResponse.json({ 
                 error: 'isFavorite must be a boolean value'
@@ -94,7 +93,7 @@ export async function PUT(req: NextRequest) {
     } catch (err) {
         console.error("Error in set_favorite API:", err);
         
-        // Handle duplicate key error (shouldn't happen with our logic, but just in case)
+        // Handle duplicate key error
         if (err instanceof Error && err.message.includes('duplicate key')) {
             return NextResponse.json({ 
                 error: 'Interaction already exists for this user and movie/show'

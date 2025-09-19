@@ -1,4 +1,3 @@
-// api/users/reviews/[reviewId]/like/route.ts
 import dbConnect from "@/lib/mongoose";
 import UserReview from "@/models/UserReview";
 import { NextRequest, NextResponse } from "next/server";
@@ -6,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(req: NextRequest, context: { params: Promise<{ reviewId: string }> }) {
     await dbConnect();
     
-    const { reviewId } = await context.params; // <-- await here
+    const { reviewId } = await context.params;
     const { userId, action } = await req.json();
 
     console.log({ reviewId, userId, action });

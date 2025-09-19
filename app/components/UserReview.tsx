@@ -11,8 +11,8 @@ interface UserReviewProps {
     helpfulCount: number;
     unhelpfulCount: number;
     hasSpoiler?: boolean;
-    userLiked?: boolean;     // <-- new
-    userDisliked?: boolean;  // <-- new
+    userLiked?: boolean; 
+    userDisliked?: boolean; 
     handleVote: (reviewId: string, action: "like" | "dislike") => Promise<void>;
 }
 

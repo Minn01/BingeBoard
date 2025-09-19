@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
   const interaction = await UserMovieInteraction.findOneAndUpdate(
     { userId: body.userId, tmdbId: body.tmdbId },
     body,
-    { new: true, upsert: true } // if not exists, create
+    { new: true, upsert: true } 
   );
 
   return NextResponse.json(interaction, { status: 201 });

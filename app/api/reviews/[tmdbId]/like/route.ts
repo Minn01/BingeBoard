@@ -1,4 +1,3 @@
-// api/reviews/[tmdbId]/like.ts
 import dbConnect from "@/lib/mongoose";
 import UserReview from "@/models/UserReview";
 import { NextRequest, NextResponse } from "next/server";
@@ -6,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   await dbConnect();
   const { id } = params;
-  const { userId, action } = await req.json(); // "like" or "dislike"
+  const { userId, action } = await req.json(); 
 
   const review = await UserReview.findById(id);
   if (!review) return NextResponse.json({ error: "Review not found" }, { status: 404 });

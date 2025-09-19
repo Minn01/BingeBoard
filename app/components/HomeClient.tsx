@@ -42,7 +42,6 @@ export default function HomeClient({ trending, popularMovies, popularTvShows, to
     });
     const [statsLoading, setStatsLoading] = useState(true);
 
-    // Keep your old handlers
     const handleSetFavorite = async (movie: Movie) => {
         try {
             const response = await fetch('/api/interactions/set_favorite', {
@@ -70,8 +69,8 @@ export default function HomeClient({ trending, popularMovies, popularTvShows, to
             const result = await response.json();
 
             window.alert("Added to favorites")
-            // Show success message (optional)
-            console.log(result.message); // "Added to favorites" or "Removed from favorites"
+            // Show success message 
+            console.log(result.message);
 
         } catch {
 
