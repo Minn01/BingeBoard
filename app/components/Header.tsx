@@ -48,6 +48,8 @@ function Header() {
             setCurrentPage('browse');
         } else if (pathname === '/my-list') {
             setCurrentPage('my-list');
+        } else if (pathname === 'profile') {
+            setCurrentPage('/profile');
         }
     }, [pathname]);
 
@@ -223,12 +225,12 @@ function Header() {
                     </div>
 
                     {/* Navigation */}
-                    <nav className="hidden md:flex space-x-8">
+                    <nav className="hidden md:flex space-x-3">
                         <button
                             onClick={() => moveTo('dashboard')}
                             className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${currentPage === 'dashboard'
-                                    ? 'bg-white/20 text-white'
-                                    : 'text-white/80 hover:text-white hover:bg-white/10'
+                                ? 'bg-white/20 text-white'
+                                : 'text-white/80 hover:text-white hover:bg-white/10'
                                 }`}
                         >
                             <Home className="w-4 h-4" />
@@ -237,8 +239,8 @@ function Header() {
                         <button
                             onClick={() => moveTo('browse')}
                             className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${currentPage === 'browse'
-                                    ? 'bg-white/20 text-white'
-                                    : 'text-white/80 hover:text-white hover:bg-white/10'
+                                ? 'bg-white/20 text-white'
+                                : 'text-white/80 hover:text-white hover:bg-white/10'
                                 }`}
                         >
                             Browse
@@ -246,24 +248,28 @@ function Header() {
                         <button
                             onClick={() => moveTo('my-list')}
                             className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${currentPage === 'my-list'
-                                    ? 'bg-white/20 text-white'
-                                    : 'text-white/80 hover:text-white hover:bg-white/10'
+                                ? 'bg-white/20 text-white'
+                                : 'text-white/80 hover:text-white hover:bg-white/10'
                                 }`}
                         >
                             My List
                         </button>
-                    </nav>
 
-                    {/* User Menu */}
-                    <div className="flex items-center space-x-4">
-                        <div className="flex items-center space-x-2">
-                            <User className="w-5 h-5" />
-                            <span className="text-sm">
-                                {user ? `Welcome, ${user.username}!` : 'Loading...'}
-                            </span>
+                        {/* User Menu */}
+                        <div className='flex items-center space-x-4'>
+                            <div onClick={() => moveTo('profile')}
+                                className={`flex items-center space-x-2 px-3 py-2 rounded-md transition-colors ${currentPage === 'profile'
+                                    ? 'bg-white/20 text-white'
+                                    : 'text-white/80 hover:text-white hover:bg-white/10'
+                                    }`}>
+                                <User className='w-5 h-5' />
+                                <span>
+                                    {user ? `Welcome, ${user.username}!` : 'Loading...'}
+                                </span>
+                            </div>
+                            <LogoutButton />
                         </div>
-                        <LogoutButton />
-                    </div>
+                    </nav>
                 </div>
             </div>
         </header>
