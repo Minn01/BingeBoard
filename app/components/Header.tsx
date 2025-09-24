@@ -1,6 +1,6 @@
 'use client'
 
-import { Search, Home, User, X } from "lucide-react"
+import { Search, Home, User, X, Loader2 } from "lucide-react"
 import { useState, useEffect, useRef } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import LogoutButton from "./LogoutButton"
@@ -25,6 +25,7 @@ function Header() {
     const searchRef = useRef<HTMLDivElement>(null);
     const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [user, setUser] = useState<{ username: string } | null>(null);
+    const [isNavigating, setIsNavigating] = useState(false);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -42,6 +43,7 @@ function Header() {
 
     // Update current page based on pathname
     useEffect(() => {
+        setIsNavigating(false);
         if (pathname === '/') {
             setCurrentPage('dashboard');
         } else if (pathname === '/browse') {
@@ -114,10 +116,12 @@ function Header() {
 
     const moveTo = (page: string) => {
         setCurrentPage(page);
+        setIsNavigating(true);
         router.push('/' + (page === 'dashboard' ? '' : page));
     }
 
     const handleSearchItemClick = (movie: SearchResult) => {
+        setIsNavigating(true);
         setShowSearchResults(false);
         setSearchQuery('');
         // Fixed: Use router.push directly instead of moveTo
@@ -133,6 +137,7 @@ function Header() {
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (searchQuery.trim()) {
+            setIsNavigating(true);
             // Navigate to browse page with search query
             router.push(`/browse?search=${encodeURIComponent(searchQuery.trim())}`);
             setShowSearchResults(false);
@@ -142,6 +147,14 @@ function Header() {
 
     return (
         <header className="fixed w-full z-50 bg-playstation-blue text-white shadow-lg">
+            {isNavigating && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center">
+                    <div className="bg-white rounded-lg p-6 shadow-xl flex flex-col items-center space-y-4">
+                        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                        <p className="text-gray-700 font-medium">Loading...</p>
+                    </div>
+                </div>
+            )}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center py-4">
                     <div className="flex items-center">
