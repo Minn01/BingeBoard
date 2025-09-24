@@ -14,7 +14,7 @@ import Movie from '../types/Movie';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-interface HeroCarouselProps {
+type HeroCarouselProps = {
     movies: Movie[];
     onAddToList?: (movie: Movie) => void;
 }

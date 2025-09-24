@@ -1,46 +1,16 @@
 'use client'
 
-import { Star } from "lucide-react";
-import Movie from "../../../types/Movie";
+import { Star, Clapperboard, User } from "lucide-react";
+import Movie from "@/app/types/Movie";
+import UserType from "@/app/types/UserType";
+import Cast from '@/app/types/Cast'
+import Similar from '@/app/types/Similar'
+import Review from '@/app/types/Review'
+import RecommendationsResponse from "@/app/types/RecommendatationsResponse";
+import CreditsResponse from "@/app/types/CreditsResponse";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import UserReview from "@/app/components/UserReview";
-
-// TMDB Cast interface
-interface Cast {
-    id: number;
-    name: string;
-    character: string;
-    profile_path: string | null;
-}
-
-// TMDB Similar Title interface
-interface Similar {
-    id: number;
-    title?: string;
-    name?: string;
-    poster_path: string | null;
-}
-
-// TMDB Response interfaces
-interface CreditsResponse {
-    cast: Cast[];
-}
-
-interface RecommendationsResponse {
-    results: Similar[];
-}
-
-interface Review {
-    id: number;
-    username: string;
-    rating: number;
-    reviewText: string;
-    likes: string[];
-    dislikes: string[]; 
-    hasSpoilers: boolean;
-    createdAt: Date
-}
 
 // Genre mapping
 const genres: { [key: number]: string } = {
@@ -51,8 +21,8 @@ const genres: { [key: number]: string } = {
 };
 
 function timeAgo(inputDate: Date) {
-    const now = new Date();
-    const date = new Date(inputDate);
+    const now: any = new Date();
+    const date: any = new Date(inputDate);
     const seconds = Math.floor((now - date) / 1000);
 
     if (seconds < 60) {
@@ -89,11 +59,10 @@ function timeAgo(inputDate: Date) {
 }
 
 
-// TODO: ignore some of the typescript errors it works regardless
 export default function MovieDetailsPage() {
     // other stuff
     const router = useRouter();
-    const [user, setUser] = useState<{ username: string } | null>(null); // Add user state
+    const [user, setUser] = useState<UserType | null>(null); // Add user state
     const { mediaType, id } = useParams<{ mediaType: string; id: string }>();
     const [movie, setMovie] = useState<Movie | null>(null);
     const [casts, setCasts] = useState<Cast[]>([]);
@@ -139,7 +108,7 @@ export default function MovieDetailsPage() {
             try {
                 const res = await fetch(`/api/details?id=${id}&mediaType=${mediaType}`);
                 if (!res.ok) throw new Error('Failed to fetch movie');
-                const data: Movie = await res.json();
+                const data = await res.json();
 
                 setMovie({
                     id: data.id,
@@ -248,8 +217,6 @@ export default function MovieDetailsPage() {
             const res = await fetch(`/api/reviews?id=${id}&mediaType=${mediaType}`);
             if (!res.ok) throw new Error('Failed to fetch reviews');
             const data: Review[] = await res.json();
-            console.log(data[0].username);
-
             setReviews(data);
         } catch (err) {
             console.error(err);
@@ -312,7 +279,7 @@ export default function MovieDetailsPage() {
     const handleSaveInteraction = async () => {
         try {
             const body = {
-                userId: user._id, // TODO: ignore
+                userId: user?._id,
                 tmdbId: Number(id),
                 mediaType,
                 status,
@@ -342,7 +309,7 @@ export default function MovieDetailsPage() {
             const res = await fetch(`/api/users/reviews/${reviewId}/like`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ userId: user._id, action }),
+                body: JSON.stringify({ userId: user?._id, action }),
             });
 
             if (!res.ok) throw new Error("Failed to vote");
@@ -573,12 +540,19 @@ export default function MovieDetailsPage() {
                             <div className="flex gap-4 overflow-x-auto pb-4 mt-4">
                                 {casts.map(actor => (
                                     <div key={actor.id} className="flex-none w-32">
-                                        <img
-                                            src={actor.profile_path ? `https://image.tmdb.org/t/p/w185${actor.profile_path}` : '/api/placeholder/185/278'}
-                                            alt={actor.name}
-                                            className="rounded-lg mb-2 w-full h-40 object-cover"
-                                            loading="lazy"
-                                        />
+                                        {actor.profile_path ? (
+                                            <img
+                                                src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
+                                                alt={actor.name}
+                                                className="rounded-lg mb-2 w-full h-40 object-cover bg-gray-800"
+                                                loading="lazy"
+                                            />
+                                        ) : (
+                                            // fallback ui for displaying casts
+                                            <div className="rounded-lg mb-2 w-full h-40 flex items-center justify-center bg-gray-800 text-gray-400">
+                                                <User size={48} />
+                                            </div>
+                                        )}
                                         <p className="font-semibold text-sm">{actor.name}</p>
                                         <p className="text-gray-400 text-xs truncate">{actor.character}</p>
                                     </div>
@@ -615,13 +589,22 @@ export default function MovieDetailsPage() {
                                         className="flex-none w-40 cursor-pointer"
                                         onClick={() => handleViewDetails(sim.id, mediaType as 'movie' | 'tv')}
                                     >
-                                        <img
-                                            src={sim.poster_path ? `https://image.tmdb.org/t/p/w300${sim.poster_path}` : '/api/placeholder/300/450'}
-                                            alt={sim.title || sim.name || 'Unknown'}
-                                            className="rounded-lg mb-2 w-full h-60 object-cover"
-                                            loading="lazy"
-                                        />
-                                        <p className="font-semibold text-sm line-clamp-2">{sim.title || sim.name || 'Unknown'}</p>
+                                        {sim.poster_path ? (
+                                            <img
+                                                src={`https://image.tmdb.org/t/p/w300${sim.poster_path}`}
+                                                alt={sim.title || sim.name || 'Unknown'}
+                                                className="rounded-lg mb-2 w-full h-60 object-cover bg-gray-800"
+                                                loading="lazy"
+                                            />
+                                        ) : (
+                                            // fallback ui for displaying similar titles
+                                            <div className="rounded-lg mb-2 w-full h-60 flex items-center justify-center bg-gray-800 text-gray-400">
+                                                <Clapperboard size={48} />
+                                            </div>
+                                        )}
+                                        <p className="font-semibold text-sm line-clamp-2">
+                                            {sim.title || sim.name || 'Unknown'}
+                                        </p>
                                     </div>
                                 ))}
                             </div>
@@ -703,8 +686,8 @@ export default function MovieDetailsPage() {
                             <div className="space-y-4">
                                 {reviews.length > 0 ? (
                                     reviews.map((review) => {
-                                        const userLiked = user && review.likes?.includes(user._id);
-                                        const userDisliked = user && review.dislikes?.includes(user._id);
+                                        const userLiked = user && review.likes?.includes(user._id || '');
+                                        const userDisliked = user && review.dislikes?.includes(user._id || '');
 
 
                                         return (

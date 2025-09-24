@@ -48,7 +48,7 @@ function SignUpPage() {
             
             // Redirect to dashboard
             router.push('/');
-        } catch (error) {
+        } catch (error: any) {
             console.error('Signup error:', error);
             setErrorMessage(error.message || 'An error occurred during signup');
         }

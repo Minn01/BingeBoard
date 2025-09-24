@@ -3,7 +3,7 @@
 import Header from "./Header"
 import { usePathname } from "next/navigation";
 
-interface LayoutClientProps {
+type LayoutClientProps = {
     children: React.ReactNode;
 }
 

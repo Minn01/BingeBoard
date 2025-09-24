@@ -3,7 +3,7 @@ import { Star, Plus, Info } from "lucide-react"
 import Movie from "../types/Movie"
 import { useRouter } from "next/navigation"
 
-interface MovieCardProps {
+type MovieCardProps = {
     movie: Movie;
     compact?: boolean;
 }

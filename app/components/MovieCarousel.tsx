@@ -12,7 +12,7 @@ import 'swiper/css/pagination';
 import Movie from '../types/Movie';
 import MovieCard from './MovieCard';
 
-interface MovieCarouselProps {
+type MovieCarouselProps = {
     title: string;
     movies: Movie[];
     autoplay?: boolean;

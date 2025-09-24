@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import MovieCard from "../components/MovieCard";
 import Movie from "../types/Movie";
 
-interface UserProfile {
+type UserProfile = {
     id: string;
     username: string;
     email: string;

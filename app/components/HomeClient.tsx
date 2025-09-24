@@ -14,7 +14,7 @@ const genres: { [key: number]: string } = {
     10770: "TV Movie", 53: "Thriller", 10752: "War", 37: "Western"
 };
 
-interface UserStats {
+type UserStats = {
     watched: number;
     watching: number;
     wantToWatch: number;
@@ -22,7 +22,7 @@ interface UserStats {
     total: number;
 }
 
-type Props = {
+type HomePageProps = {
     trending: Movie[];
     popularMovies: Movie[];
     popularTvShows: Movie[];
@@ -30,7 +30,7 @@ type Props = {
     upcoming: Movie[];
 };
 
-export default function HomeClient({ trending, popularMovies, popularTvShows, topRated, upcoming }: Props) {
+export default function HomeClient({ trending, popularMovies, popularTvShows, topRated, upcoming }: HomePageProps) {
     const router = useRouter();
     const [user, setUser] = useState<{ username: string } | null>(null);
     const [stats, setStats] = useState<UserStats>({

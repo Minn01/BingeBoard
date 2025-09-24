@@ -5,7 +5,7 @@ import MovieCard from "../components/MovieCard"
 import Movie from "../types/Movie"
 import { useState, useEffect, useCallback } from "react"
 import { useSearchParams } from "next/navigation"
-import { tmdbApi, tmdbToMovie } from "../../lib/tmdb"
+import BrowseClientProps from "../types/BrowseClientProps"
 
 const genres: { [key: number]: string } = {
   28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy", 80: "Crime",
@@ -14,25 +14,11 @@ const genres: { [key: number]: string } = {
   10770: "TV Movie", 53: "Thriller", 10752: "War", 37: "Western"
 };
 
-type InitialData = {
-  trending: Movie[];
-  popularMovies: Movie[];
-  popularTVShows: Movie[];
-  totalPages: {
-    trending: number;
-    movies: number;
-    tv: number;
-  };
-};
 
-type Props = {
-  initialData: InitialData;
-};
 
 // Main Browse Client Component
-export default function BrowseClient({ initialData }: Props) {
+export default function BrowseClient({ initialData }: BrowseClientProps) {
   const searchParams = useSearchParams();
-  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -220,8 +206,8 @@ export default function BrowseClient({ initialData }: Props) {
               key={page}
               onClick={() => handlePageChange(page)}
               className={`px-3 py-2 text-sm rounded ${page === currentPage
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-500 hover:text-gray-700'
                 }`}
             >
               {page}
@@ -344,7 +330,7 @@ export default function BrowseClient({ initialData }: Props) {
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">No results found</h3>
                   <p className="text-gray-600 text-center">
-                    {searchQuery 
+                    {searchQuery
                       ? `No movies or TV shows found for "${searchQuery}". Try adjusting your search terms.`
                       : 'No content available for the selected filters. Try changing your filter options.'
                     }

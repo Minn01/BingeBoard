@@ -1,8 +1,8 @@
 'use client'
 import { Star } from 'lucide-react';
 
-interface UserReviewProps {
-    id: string;
+type UserReviewProps = {
+    id: string | null;
     initials: string;
     name: string;
     timeAgo: string;
@@ -11,8 +11,8 @@ interface UserReviewProps {
     helpfulCount: number;
     unhelpfulCount: number;
     hasSpoiler?: boolean;
-    userLiked?: boolean; 
-    userDisliked?: boolean; 
+    userLiked?: boolean | null; 
+    userDisliked?: boolean | null; 
     handleVote: (reviewId: string, action: "like" | "dislike") => Promise<void>;
 }
 
@@ -69,7 +69,7 @@ function UserReview({
                     <div className="flex items-center gap-6 text-sm">
                         <button
                             onClick={() => {
-                                handleVote(id, 'like')
+                                handleVote(id || '', 'like')
                             }}
                             className={`flex items-center gap-2 transition-colors ${userLiked ? 'text-blue-400' : 'text-gray-400 hover:text-blue-400'}`}>
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -84,7 +84,7 @@ function UserReview({
                         </button>
                         <button
                             onClick={() => {
-                                handleVote(id, 'dislike')
+                                handleVote(id || '', 'dislike')
                             }}
                             className={`flex items-center gap-2 transition-colors ${userDisliked ? 'text-red-400' : 'text-gray-400 hover:text-red-400'}`}>
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

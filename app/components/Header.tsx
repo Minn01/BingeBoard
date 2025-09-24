@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import LogoutButton from "./LogoutButton"
 
-interface SearchResult {
+type SearchResult = {
     id: number;
     title: string;
     poster_path: string | null;
