@@ -1,6 +1,6 @@
 'use client'
 
-import { Search, Home, User, X, Loader2 } from "lucide-react"
+import { Search, Home, User, X, Loader2, BadgeCheck } from "lucide-react"
 import { useState, useEffect, useRef } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import LogoutButton from "./LogoutButton"
@@ -26,6 +26,7 @@ function Header() {
     const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [user, setUser] = useState<{ username: string } | null>(null);
     const [isNavigating, setIsNavigating] = useState(false);
+    const [isSuccessful, setIsSuccessful] = useState(false);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -155,6 +156,16 @@ function Header() {
                     </div>
                 </div>
             )}
+
+            {isSuccessful && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center">
+                    <div className="bg-white rounded-lg p-6 shadow-xl flex flex-col items-center space-y-4">
+                        <BadgeCheck className="text-blue-600" />
+                        <p className="text-gray-700 font-medium">Logout Successful!</p>
+                    </div>
+                </div>
+            )}
+
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center py-4">
                     <div className="flex items-center">
@@ -280,7 +291,7 @@ function Header() {
                                     {user ? `Welcome, ${user.username}!` : 'Loading...'}
                                 </span>
                             </div>
-                            <LogoutButton />
+                            <LogoutButton setIsSuccessful={setIsSuccessful} setIsNavigating={setIsNavigating} />
                         </div>
                     </nav>
                 </div>

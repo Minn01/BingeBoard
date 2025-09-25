@@ -11,14 +11,9 @@ import CreditsResponse from "@/app/types/CreditsResponse";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import UserReview from "@/app/components/UserReview";
+import { getGenreName } from '@/lib/genres'
 
 // Genre mapping
-const genres: { [key: number]: string } = {
-    28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy", 80: "Crime",
-    99: "Documentary", 18: "Drama", 10751: "Family", 14: "Fantasy", 36: "History",
-    27: "Horror", 10402: "Music", 9648: "Mystery", 10749: "Romance", 878: "Science Fiction",
-    10770: "TV Movie", 53: "Thriller", 10752: "War", 37: "Western"
-};
 
 function timeAgo(inputDate: Date) {
     const now: any = new Date();
@@ -451,7 +446,7 @@ export default function MovieDetailsPage() {
                         {/* Genres */}
                         <div className="flex flex-wrap gap-2 mt-6 mb-6">
                             {movie.genre_ids.map(id => (
-                                <span key={id} className="px-3 py-1 bg-gray-700 rounded-full text-sm">{genres[id]}</span>
+                                <span key={id} className="px-3 py-1 bg-gray-700 rounded-full text-sm">{getGenreName(id)}</span>
                             ))}
                         </div>
 

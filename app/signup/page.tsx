@@ -1,15 +1,19 @@
 'use client';
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Loader2, MonitorCheck } from 'lucide-react'
 
 function SignUpPage() {
     const [email, setEmail] = useState('');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [isSuccessful, setIsSuccessful] = useState(false);
     const router = useRouter();
 
     const handleSignup = async () => {
+        setIsLoading(true);
         setErrorMessage('');
 
         // Basic validation
@@ -46,6 +50,12 @@ function SignUpPage() {
                 localStorage.setItem('token', data.token);
             }
             
+            // show success message
+            setIsSuccessful(true);
+
+            // hide the loading screen
+            setIsLoading(false);
+
             // Redirect to dashboard
             router.push('/');
         } catch (error: any) {
@@ -56,6 +66,26 @@ function SignUpPage() {
 
     return (
         <div className="min-h-screen login-bg flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+            {/* Loading Modal */}
+            {isLoading && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center">
+                    <div className="bg-white rounded-lg p-6 shadow-xl flex flex-col items-center space-y-4">
+                        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                        <p className="text-gray-700 font-medium">Loading...</p>
+                    </div>
+                </div>
+            )}
+
+            {/* Success Modal */}
+            {isSuccessful && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center">
+                    <div className="bg-white rounded-lg p-6 shadow-xl flex flex-col items-center space-y-4">
+                        <MonitorCheck />
+                        <p className="text-gray-700 font-medium">Account Created! Welcome!</p>
+                    </div>
+                </div>
+            )}
+
             <div className="login-content">
                 {/* Logo/Title */}
                 <div className="text-center mb-8">

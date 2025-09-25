@@ -3,7 +3,7 @@ import { Star, Plus, Info } from "lucide-react"
 import Movie from "../types/Movie"
 import { useRouter } from "next/navigation"
 
-type MovieCardProps = {
+interface MovieCardProps {
     movie: Movie;
     compact?: boolean;
 }
@@ -137,8 +137,8 @@ function MovieCard({ movie, compact = false }: MovieCardProps) {
                         className="flex-1 bg-blue-600 text-white py-2 px-3 rounded-md hover:bg-blue-700 transition-colors text-xs sm:text-sm font-medium flex items-center justify-center space-x-1"
                         onClick={handleViewDetails}
                     >
-                        <Info className="w-4 h-4" />
-                        <span>Details & Review</span>
+                        <Info className="h-4" />
+                        <span>Details</span>
                     </button>
                     <button
                         onClick={() => handleSetFavorite(movie)}

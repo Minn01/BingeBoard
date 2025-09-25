@@ -2,14 +2,18 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Loader2, MonitorCheck } from 'lucide-react'
 
 function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [isSuccessful, setIsSuccessful] = useState(false);
     const router = useRouter();
 
     const handleLogin = async () => {
+        setIsLoading(true);
         setErrorMessage('');
 
         if (!email || !password) {
@@ -35,12 +39,21 @@ function LoginPage() {
             }
 
             const data = await response.json();
-            
+
             // Store the token
-            localStorage.setItem('token', data.token);
-            
+            if (data.token) {
+                localStorage.setItem('token', data.token);
+            } 
+
+            // show success message
+            setIsSuccessful(true);
+
+            // hide the loading screen
+            setIsLoading(false);
+
             // Redirect to dashboard
             router.push('/');
+
         } catch (error: any) {
             console.error('Login error:', error);
             setErrorMessage(error.message || 'An error occurred during login');
@@ -49,6 +62,26 @@ function LoginPage() {
 
     return (
         <div className="min-h-screen login-bg flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+            {/* Loading Modal */}
+            {isLoading && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center">
+                    <div className="bg-white rounded-lg p-6 shadow-xl flex flex-col items-center space-y-4">
+                        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                        <p className="text-gray-700 font-medium">Loading...</p>
+                    </div>
+                </div>
+            )}
+
+            {/* Success Modal */}
+            {isSuccessful && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center">
+                    <div className="bg-white rounded-lg p-6 shadow-xl flex flex-col items-center space-y-4">
+                        <MonitorCheck />
+                        <p className="text-gray-700 font-medium">Successful Login</p>
+                    </div>
+                </div>
+            )}
+
             <div className="login-content">
                 {/* Logo/Title */}
                 <div className="text-center mb-8">
@@ -118,8 +151,8 @@ function LoginPage() {
                         <div className="mt-8 text-center">
                             <p className="text-sm text-white/80">
                                 Don't have an account?{' '}
-                                <a 
-                                    href="/signup" 
+                                <a
+                                    href="/signup"
                                     className="text-white font-semibold hover:text-white/80 transition-colors underline underline-offset-2"
                                 >
                                     Create Account

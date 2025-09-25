@@ -2,10 +2,18 @@
 import React from 'react'
 import { LogOut } from "lucide-react";
 
-function LogoutButton() {
+type LogoutButtonProps = {
+    setIsSuccessful: React.Dispatch<React.SetStateAction<boolean>>
+    setIsNavigating: React.Dispatch<React.SetStateAction<boolean>>
+}
+
+function LogoutButton(
+    { setIsSuccessful, setIsNavigating } : LogoutButtonProps
+) {
     return (
         <button 
             onClick={async () => {
+                setIsNavigating(true)
                 const res = await fetch('/api/logout', {
                     method: 'POST',
                     headers: {
@@ -14,6 +22,8 @@ function LogoutButton() {
                 });
 
                 if (res.ok) {
+                    setIsNavigating(false);
+                    setIsSuccessful(true);
                     // Redirect to login page on successful logout
                     window.location.href = '/login';
                 } else {
