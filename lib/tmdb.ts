@@ -42,11 +42,11 @@ export function tmdbToMovie(tmdbItem: TMDBMovie): import('../app/types/Movie').d
     mediaType,
     title: tmdbItem.title || tmdbItem.name || 'Unknown Title',
     poster_path: tmdbItem.poster_path,
+    backdrop_path: tmdbItem.backdrop_path,
     release_date: tmdbItem.release_date || tmdbItem.first_air_date || '',
     vote_average: Math.round(tmdbItem.vote_average * 10) / 10,
     genre_ids: tmdbItem.genre_ids,
     overview: tmdbItem.overview,
-
     userStatus: undefined,
     userRating: undefined,
     episodesWatched: undefined,
@@ -54,7 +54,6 @@ export function tmdbToMovie(tmdbItem: TMDBMovie): import('../app/types/Movie').d
     totalSeasons: tmdbItem.number_of_seasons
   };
 }
-
 
 export class TMDBApi {
   private baseUrl = TMDB_BASE_URL;

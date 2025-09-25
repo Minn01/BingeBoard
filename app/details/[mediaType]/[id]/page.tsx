@@ -468,25 +468,27 @@ export default function MovieDetailsPage() {
                                 <div className="flex gap-4">
                                     <div>
                                         <label className="text-xl font-semibold mr-2">Seasons Watched:</label>
-                                        <input
-                                            type="number"
-                                            min={0}
-                                            max={movie.totalSeasons}
+                                        <select
                                             value={seasonsWatched}
                                             onChange={e => setSeasonsWatched(Number(e.target.value))}
-                                            className="bg-gray-800 px-2 py-1 rounded w-16"
-                                        />
+                                            className="bg-gray-800 px-2 py-1 rounded"
+                                        >
+                                            {Array.from({ length: (movie.totalSeasons || 0) + 1 }, (_, i) => (
+                                                <option key={i} value={i}>{i}</option>
+                                            ))}
+                                        </select>
                                     </div>
                                     <div>
                                         <label className="text-xl font-semibold mr-2">Episodes Watched:</label>
-                                        <input
-                                            type="number"
-                                            min={0}
-                                            max={movie.totalEpisodes}
+                                        <select
                                             value={episodesWatched}
                                             onChange={e => setEpisodesWatched(Number(e.target.value))}
-                                            className="bg-gray-800 px-2 py-1 rounded w-16"
-                                        />
+                                            className="bg-gray-800 px-2 py-1 rounded"
+                                        >
+                                            {Array.from({ length: (movie.totalEpisodes || 0) + 1 }, (_, i) => (
+                                                <option key={i} value={i}>{i}</option>
+                                            ))}
+                                        </select>
                                     </div>
                                     <button className="text-blue-400" onClick={() => setIsEditing(false)}>done</button>
                                 </div>
@@ -498,7 +500,6 @@ export default function MovieDetailsPage() {
                                 </div>
                             )
                         )}
-
                         {/* Overview */}
                         <p className="text-gray-200 mb-6 leading-relaxed mt-3">{movie.overview}</p>
 
