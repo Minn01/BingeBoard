@@ -3,7 +3,8 @@
 import { Filter, Loader2 } from "lucide-react"
 import MovieCard from "../components/MovieCard"
 import Movie from "../types/Movie"
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, Suspense } from "react"
+import PageLoader from "./PageLoader"
 import { useSearchParams } from "next/navigation"
 import BrowseClientProps from "../types/BrowseClientProps"
 
@@ -219,122 +220,124 @@ export default function BrowseClient({ initialData }: BrowseClientProps) {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex gap-8">
-        {/* Filters Sidebar */}
-        <div className="w-64 flex-shrink-0">
-          <div className="bg-white rounded-lg shadow p-6 sticky top-24">
-            <h3 className="font-bold text-gray-900 mb-4 flex items-center">
-              <Filter className="w-4 h-4 mr-2" />
-              Filters
-            </h3>
+    <Suspense fallback={<PageLoader />}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex gap-8">
+          {/* Filters Sidebar */}
+          <div className="w-64 flex-shrink-0">
+            <div className="bg-white rounded-lg shadow p-6 sticky top-24">
+              <h3 className="font-bold text-gray-900 mb-4 flex items-center">
+                <Filter className="w-4 h-4 mr-2" />
+                Filters
+              </h3>
 
-            {/* Search Input */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search movies & shows..."
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
+              {/* Search Input */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search movies & shows..."
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
 
-            {/* Content Type Filter */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
-              <select
-                value={contentType}
-                onChange={(e) => setContentType(e.target.value as 'all' | 'movie' | 'tv')}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+              {/* Content Type Filter */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                <select
+                  value={contentType}
+                  onChange={(e) => setContentType(e.target.value as 'all' | 'movie' | 'tv')}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">All</option>
+                  <option value="movie">Movies</option>
+                  <option value="tv">TV Shows</option>
+                </select>
+              </div>
+
+              {/* Sort Options */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="popularity">Popularity</option>
+                  <option value="rating">Rating</option>
+                  <option value="release_date">Release Date</option>
+                  <option value="title">Title</option>
+                </select>
+              </div>
+
+              <button
+                onClick={() => {
+                  if (searchQuery.trim()) {
+                    setCurrentPage(1);
+                    fetchMovies(1, searchQuery);
+                  }
+                }}
+                disabled={!searchQuery.trim()}
+                className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
-                <option value="all">All</option>
-                <option value="movie">Movies</option>
-                <option value="tv">TV Shows</option>
-              </select>
-            </div>
-
-            {/* Sort Options */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="popularity">Popularity</option>
-                <option value="rating">Rating</option>
-                <option value="release_date">Release Date</option>
-                <option value="title">Title</option>
-              </select>
-            </div>
-
-            <button
-              onClick={() => {
-                if (searchQuery.trim()) {
-                  setCurrentPage(1);
-                  fetchMovies(1, searchQuery);
-                }
-              }}
-              disabled={!searchQuery.trim()}
-              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-            >
-              Apply Filters
-            </button>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="flex-1">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">
-                {searchQuery ? `Search Results for "${searchQuery}"` :
-                  contentType === 'all' ? 'Trending Movies & TV Shows' :
-                    contentType === 'movie' ? 'Popular Movies' : 'Popular TV Shows'}
-              </h2>
-              <p className="text-gray-600 mt-1">
-                Page {currentPage} of {totalPages} • {movies.length} results
-              </p>
+                Apply Filters
+              </button>
             </div>
           </div>
 
-          {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="flex items-center space-x-2">
-                <Loader2 className="w-6 h-6 animate-spin" />
-                <span className="text-gray-600">Loading...</span>
+          {/* Main Content */}
+          <div className="flex-1">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {searchQuery ? `Search Results for "${searchQuery}"` :
+                    contentType === 'all' ? 'Trending Movies & TV Shows' :
+                      contentType === 'movie' ? 'Popular Movies' : 'Popular TV Shows'}
+                </h2>
+                <p className="text-gray-600 mt-1">
+                  Page {currentPage} of {totalPages} • {movies.length} results
+                </p>
               </div>
             </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                {movies.map((movie) => (
-                  <MovieCard key={`${movie.id}-${movie.mediaType || 'movie'}`} movie={movie} />
-                ))}
-              </div>
 
-              {movies.length === 0 && !loading && (
-                <div className="flex flex-col items-center justify-center py-12">
-                  <div className="text-gray-400 mb-4">
-                    <Filter className="w-16 h-16" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No results found</h3>
-                  <p className="text-gray-600 text-center">
-                    {searchQuery
-                      ? `No movies or TV shows found for "${searchQuery}". Try adjusting your search terms.`
-                      : 'No content available for the selected filters. Try changing your filter options.'
-                    }
-                  </p>
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="flex items-center space-x-2">
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                  <span className="text-gray-600">Loading...</span>
                 </div>
-              )}
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                  {movies.map((movie) => (
+                    <MovieCard key={`${movie.id}-${movie.mediaType || 'movie'}`} movie={movie} />
+                  ))}
+                </div>
 
-              {movies.length > 0 && totalPages > 1 && renderPagination()}
-            </>
-          )}
+                {movies.length === 0 && !loading && (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <div className="text-gray-400 mb-4">
+                      <Filter className="w-16 h-16" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">No results found</h3>
+                    <p className="text-gray-600 text-center">
+                      {searchQuery
+                        ? `No movies or TV shows found for "${searchQuery}". Try adjusting your search terms.`
+                        : 'No content available for the selected filters. Try changing your filter options.'
+                      }
+                    </p>
+                  </div>
+                )}
+
+                {movies.length > 0 && totalPages > 1 && renderPagination()}
+              </>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </Suspense>
   );
 }

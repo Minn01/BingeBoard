@@ -1,52 +1,43 @@
-import { tmdbApi, tmdbToMovie } from "@/lib/tmdb";
+// app/browse/page.tsx
 import BrowseClient from '../components/BrowseClient';
+import { tmdbApi, tmdbToMovie } from '@/lib/tmdb';
+import { Suspense } from 'react';
+import PageLoader from '../components/PageLoader'; // your fallback component
 
-async function BrowsePage() {
+export default async function BrowsePage() {
+  let initialData;
+
   try {
-    // Fetch initial data on server - popular content for each type
-    const [
-      trendingResponse,
-      popularMoviesResponse, 
-      popularTVResponse
-    ] = await Promise.all([
+    const [trendingRes, popularMoviesRes, popularTVRes] = await Promise.all([
       tmdbApi.getTrending('week', 1),
       tmdbApi.getPopularMovies(1),
       tmdbApi.getPopularTVShows(1)
     ]);
 
-    const initialData = {
-      trending: trendingResponse.results.slice(0, 20).map(tmdbToMovie),
-      popularMovies: popularMoviesResponse.results.slice(0, 20).map(tmdbToMovie),
-      popularTVShows: popularTVResponse.results.slice(0, 20).map(tmdbToMovie),
+    initialData = {
+      trending: trendingRes.results.slice(0, 20).map(tmdbToMovie),
+      popularMovies: popularMoviesRes.results.slice(0, 20).map(tmdbToMovie),
+      popularTVShows: popularTVRes.results.slice(0, 20).map(tmdbToMovie),
       totalPages: {
-        trending: trendingResponse.total_pages,
-        movies: popularMoviesResponse.total_pages,
-        tv: popularTVResponse.total_pages
+        trending: trendingRes.total_pages,
+        movies: popularMoviesRes.total_pages,
+        tv: popularTVRes.total_pages
       }
     };
-
-    return <BrowseClient initialData={initialData} />;
-    
-  } catch (error) {
-    console.error('Failed to load browse data:', error);
-    
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-          <h3 className="text-red-800 font-semibold">Unable to load browse content</h3>
-          <p className="text-red-600 mt-2">
-            Please check your TMDB API key or try again later.
-          </p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="mt-4 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
+  } catch (err) {
+    console.error('Failed to load browse data:', err);
+    // You could handle fallback UI here if you want
+    initialData = {
+      trending: [],
+      popularMovies: [],
+      popularTVShows: [],
+      totalPages: { trending: 1, movies: 1, tv: 1 }
+    };
   }
-}
 
-export default BrowsePage;
+  return (
+    <Suspense fallback={<PageLoader />}>
+      <BrowseClient initialData={initialData} />
+    </Suspense>
+  );
+}

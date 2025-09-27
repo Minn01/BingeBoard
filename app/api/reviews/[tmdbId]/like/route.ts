@@ -2,12 +2,12 @@ import dbConnect from "@/lib/mongoose";
 import UserReview from "@/models/UserReview";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ tmdbId: string }> }) {
   await dbConnect();
-  const { id } = params;
+  const { tmdbId } = await params;
   const { userId, action } = await req.json(); 
 
-  const review = await UserReview.findById(id);
+  const review = await UserReview.findById(tmdbId);
   if (!review) return NextResponse.json({ error: "Review not found" }, { status: 404 });
 
   // Remove user from both arrays first
