@@ -34,10 +34,11 @@ function LoginPage() {
                 }),
             });
 
+            setIsLoading(false);
+
             if (!response.ok) {
                 const errorData = await response.json();
                 setErrorMessage(errorData.message || 'Login failed');
-                setIsLoading(false);
                 return;
             }
 

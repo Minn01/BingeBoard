@@ -37,23 +37,24 @@ function SignUpPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, username, password }),
-                credentials: 'include', 
+                credentials: 'include',
             });
+
+            setIsLoading(false);
 
             if (!response.ok) {
                 const errorData = await response.json();
                 setErrorMessage(errorData.message || 'Signup failed');
-                setIsLoading(false);
                 return;
             }
 
             const data = await response.json();
-            
+
             // Store the token if provided
             if (data.token) {
                 localStorage.setItem('token', data.token);
             }
-            
+
             // show success message
             setIsSuccessful(true);
 
@@ -174,7 +175,7 @@ function SignUpPage() {
                             <p className="text-sm text-white/80">
                                 Already have an account?{' '}
                                 <Link
-                                    href="/login" 
+                                    href="/login"
                                     className="text-white font-semibold hover:text-white/80 transition-colors underline underline-offset-2"
                                 >
                                     Sign In
