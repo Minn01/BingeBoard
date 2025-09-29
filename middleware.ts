@@ -1,27 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 
+const BASE_PATH = '/bingeboard';
+
 export async function middleware(req: NextRequest) {
     const token = req.cookies.get("token")?.value;
 
     if (!token) {
-        return NextResponse.redirect(new URL("/login", req.url));
+        return NextResponse.redirect(new URL(`${BASE_PATH}/login`, req.url));
     }
 
     try {
         await jwtVerify(token, new TextEncoder().encode(process.env.JWT_SECRET));
         return NextResponse.next();
     } catch {
-        return NextResponse.redirect(new URL("/login", req.url));
+        return NextResponse.redirect(new URL(`${BASE_PATH}/login`, req.url));
     }
 }
 
-// Only run middleware on protected routes
 export const config = {
     matcher: [
-        '/',                 // Home page
-        '/my-list/:path*',   // My List pages
-        '/browse/:path*',    // Browse pages
-        '/api/protected/:path*', // Any protected API
+        '/',
+        '/my-list/:path*',
+        '/browse/:path*',
+        '/api/protected/:path*',
     ],
 };

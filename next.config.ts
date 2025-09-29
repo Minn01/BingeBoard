@@ -1,12 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: 'standalone',
+  basePath: "/bingeboard",
   typescript: {
-    ignoreBuildErrors: true,  // Skip TypeScript errors
+    ignoreBuildErrors: true,
   },
   eslint: {
-    ignoreDuringBuilds: true, // Skip ESLint errors  
+    ignoreDuringBuilds: true,
   },
 };
 
