@@ -33,7 +33,7 @@ function SignUpPage() {
         }
 
         try {
-            const response = await fetch('/api/signup', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/api/signup`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, username, password }),
