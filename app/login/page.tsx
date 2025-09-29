@@ -23,7 +23,7 @@ function LoginPage() {
         }
 
         try {
-            const response = await fetch('/api/login', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/api/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -53,7 +53,7 @@ function LoginPage() {
             setIsLoading(false);
 
             // Redirect to dashboard
-            router.push('/');
+            router.push(`${process.env.NEXT_PUBLIC_BASE_PATH}/`);
 
         } catch (error: any) {
             console.error('Login error:', error);

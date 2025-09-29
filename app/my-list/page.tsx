@@ -43,7 +43,7 @@ function MyListContent() {
       setError(null);
 
       try {
-        const res = await fetch("/api/watch_list");
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/api/watch_list`);
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
         const data = await res.json();

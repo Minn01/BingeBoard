@@ -1,5 +1,6 @@
 'use client'
 import React from 'react'
+import { useRouter } from 'next/navigation';
 import { LogOut } from "lucide-react";
 
 type LogoutButtonProps = {
@@ -10,11 +11,12 @@ type LogoutButtonProps = {
 function LogoutButton(
     { setIsSuccessful, setIsNavigating } : LogoutButtonProps
 ) {
+    const router = useRouter();
     return (
         <button 
             onClick={async () => {
                 setIsNavigating(true)
-                const res = await fetch('/api/logout', {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/api/logout`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -24,8 +26,7 @@ function LogoutButton(
                 if (res.ok) {
                     setIsNavigating(false);
                     setIsSuccessful(true);
-                    // Redirect to login page on successful logout
-                    
+                    router.push(`${process.env.NEXT_PUBLIC_BASE_PATH}/login`);
                 } else {
                     window.alert("an error occurred during calling logout endpoint");
                 }

@@ -89,7 +89,7 @@ export default function MovieDetailsPage() {
 
         const fetchUser = async () => {
             try {
-                const res = await fetch('/api/me');
+                const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/api/me`);
                 if (!res.ok) throw new Error('Not logged in');
                 const data = await res.json();
                 setUser(data.user);
@@ -101,7 +101,7 @@ export default function MovieDetailsPage() {
         const fetchMovie = async () => {
             setLoading(true);
             try {
-                const res = await fetch(`/api/details?id=${id}&mediaType=${mediaType}`);
+                const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/api/details?id=${id}&mediaType=${mediaType}`);
                 if (!res.ok) throw new Error('Failed to fetch movie');
                 const data = await res.json();
 
@@ -140,7 +140,7 @@ export default function MovieDetailsPage() {
         const fetchInteraction = async () => {
             try {
                 const res = await fetch(
-                    `/api/interactions?userId=${user._id}&tmdbId=${id}&mediaType=${mediaType}`
+                    `${process.env.NEXT_PUBLIC_BASE_PATH}/api/interactions?userId=${user._id}&tmdbId=${id}&mediaType=${mediaType}`
                 );
                 if (!res.ok) throw new Error("Failed to fetch interaction");
                 const data = await res.json();
@@ -167,7 +167,7 @@ export default function MovieDetailsPage() {
 
         const fetchUserRating = async () => {
             try {
-                const res = await fetch(`/api/interactions/average?tmdbId=${id}&mediaType=${mediaType}`);
+                const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/api/interactions/average?tmdbId=${id}&mediaType=${mediaType}`);
                 if (!res.ok) throw new Error("Failed to fetch user rating");
                 const data = await res.json();
                 setUserRatingAvg(data.avgRating ? Math.round(data.avgRating * 10) / 10 : 0);
@@ -185,7 +185,7 @@ export default function MovieDetailsPage() {
     const fetchCasts = async () => {
         if (casts.length > 0) return;
         try {
-            const res = await fetch(`/api/details/casts?id=${id}&mediaType=${mediaType}`);
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/api/details/casts?id=${id}&mediaType=${mediaType}`);
             if (!res.ok) throw new Error('Failed to fetch casts');
             const data: CreditsResponse = await res.json();
             setCasts(data.cast || []);
@@ -197,7 +197,7 @@ export default function MovieDetailsPage() {
     const fetchSimilars = async () => {
         if (similars.length > 0) return;
         try {
-            const res = await fetch(`/api/details/similars?id=${id}&mediaType=${mediaType}`);
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/api/details/similars?id=${id}&mediaType=${mediaType}`);
             if (!res.ok) throw new Error('Failed to fetch similar titles');
             const data: RecommendationsResponse = await res.json();
             setSimilars(data.results || []);
@@ -209,7 +209,7 @@ export default function MovieDetailsPage() {
     const fetchReviews = async () => {
         if (reviews.length > 0) return;
         try {
-            const res = await fetch(`/api/reviews?id=${id}&mediaType=${mediaType}`);
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/api/reviews?id=${id}&mediaType=${mediaType}`);
             if (!res.ok) throw new Error('Failed to fetch reviews');
             const data: Review[] = await res.json();
             setReviews(data);
@@ -225,7 +225,7 @@ export default function MovieDetailsPage() {
         const newFavoriteStatus = !isFavorite;
 
         try {
-            const response = await fetch('/api/interactions/set_favorite', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/api/interactions/set_favorite`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -238,15 +238,12 @@ export default function MovieDetailsPage() {
             });
 
             if (!response.ok) {
-                // Revert optimistic update if request failed
                 setIsFavorite(!newFavoriteStatus);
 
                 if (response.status === 401) {
-                    // Redirect to login or show auth modal
-                    router.push('/login');
+                    router.push(`${process.env.NEXT_PUBLIC_BASE_PATH}/login`);
                     return;
                 }
-
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
@@ -284,7 +281,7 @@ export default function MovieDetailsPage() {
                 episodesWatched,
             };
 
-            const res = await fetch("/api/interactions", {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/api/interactions`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(body),
@@ -301,7 +298,7 @@ export default function MovieDetailsPage() {
 
     const handleVote = async (reviewId: string, action: "like" | "dislike") => {
         try {
-            const res = await fetch(`/api/users/reviews/${reviewId}/like`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/api/users/reviews/${reviewId}/like`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ userId: user?._id, action }),
@@ -335,10 +332,8 @@ export default function MovieDetailsPage() {
             dislikes: [],
         };
 
-        console.log("user: " + user._id + ", username : " + user.username);
-
         try {
-            const res = await fetch("/api/reviews", {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/api/reviews`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(reviewData),
@@ -356,9 +351,8 @@ export default function MovieDetailsPage() {
         }
     };
 
-
     const handleViewDetails = (contentId: number, contentMedia: 'movie' | 'tv') => {
-        router.push(`/details/${contentMedia}/${contentId}`);
+        router.push(`${process.env.NEXT_PUBLIC_BASE_PATH}/details/${contentMedia}/${contentId}`);
     };
 
     if (loading) return <p className="text-center mt-10">Loading...</p>;

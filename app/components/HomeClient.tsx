@@ -31,7 +31,7 @@ export default function HomeClient({ trending, popularMovies, popularTvShows, to
 
     const handleSetFavorite = async (movie: Movie) => {
         try {
-            const response = await fetch('/api/interactions/set_favorite', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/api/interactions/set_favorite`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -46,7 +46,7 @@ export default function HomeClient({ trending, popularMovies, popularTvShows, to
             if (!response.ok) {
                 if (response.status === 401) {
                     // Redirect to login or show auth modal
-                    router.push('/login');
+                    router.push(`${process.env.NEXT_PUBLIC_BASE_PATH}/login`);
                     return;
                 }
 
@@ -68,14 +68,14 @@ export default function HomeClient({ trending, popularMovies, popularTvShows, to
         const fetchUserAndStats = async () => {
             try {
                 // Fetch user info
-                const userRes = await fetch('/api/me');
+                const userRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/api/me`);
                 if (userRes.ok) {
                     const userData = await userRes.json();
                     setUser(userData.user);
 
                     // Fetch user stats
                     setStatsLoading(true);
-                    const statsRes = await fetch('/api/stats');
+                    const statsRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/api/stats`);
                     if (statsRes.ok) {
                         const statsData = await statsRes.json();
                         setStats(statsData);
@@ -97,14 +97,14 @@ export default function HomeClient({ trending, popularMovies, popularTvShows, to
 
     const navigateToWatchlist = (status?: string) => {
         if (status) {
-            router.push(`/my-list?status=${status.toLowerCase().replace(/ /g, '_')}`);
+            router.push(`${process.env.NEXT_PUBLIC_BASE_PATH}/my-list?status=${status.toLowerCase().replace(/ /g, '_')}`);
         } else {
-            router.push('/my-list');
+            router.push(`${process.env.NEXT_PUBLIC_BASE_PATH}/my-list`);
         }
     };
 
     const navigateToProfile = () => {
-        router.push('/profile');
+        router.push(`${process.env.NEXT_PUBLIC_BASE_PATH}/profile`);
     };
 
     return (
