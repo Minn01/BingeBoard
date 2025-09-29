@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from "react";
-import { User, Calendar, Heart, LogOut } from "lucide-react";
+import { User, Calendar, Heart, LogOut, Trash2, AlertTriangle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import MovieCard from "../components/MovieCard";
 import Movie from "../types/Movie";
@@ -20,6 +20,12 @@ function ProfilePage() {
     const [loading, setLoading] = useState(true);
     const [favoritesLoading, setFavoritesLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    
+    // Delete account states
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteConfirmation, setDeleteConfirmation] = useState("");
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
 
     useEffect(() => {
         async function fetchProfileData() {
@@ -27,11 +33,9 @@ function ProfilePage() {
             setError(null);
             
             try {
-                // Fetch user profile using your existing /api/me endpoint
                 const profileRes = await fetch("/api/me");
                 
                 if (profileRes.status === 401) {
-                    // User not authenticated, redirect to login
                     router.push('/login');
                     return;
                 }
@@ -41,8 +45,6 @@ function ProfilePage() {
                 }
                 
                 const profileData = await profileRes.json();
-                console.log("Profile data received:", profileData); 
-                
                 const userData = profileData.user;
                 setProfile({
                     id: userData._id,
@@ -80,10 +82,8 @@ function ProfilePage() {
         fetchProfileData();
     }, [router]);
 
-    // Generate avatar initials (with null check)
     const getAvatarInitials = (username: string | undefined) => {
-        if (!username) return "U"; // Default fallback
-        
+        if (!username) return "U";
         return username
             .split(' ')
             .map(name => name[0])
@@ -92,7 +92,6 @@ function ProfilePage() {
             .slice(0, 2);
     };
 
-    // Format date
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', { 
@@ -102,13 +101,44 @@ function ProfilePage() {
         });
     };
 
-    // Handle logout
     const handleLogout = async () => {
         try {
             await fetch('/api/logout', { method: 'POST' });
             router.push('/login');
         } catch (err) {
             console.error('Logout error:', err);
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        // Check if user typed their username correctly
+        if (deleteConfirmation !== profile?.username) {
+            setDeleteError("Username does not match. Please type your username correctly.");
+            return;
+        }
+
+        setIsDeleting(true);
+        setDeleteError(null);
+
+        try {
+            const response = await fetch('/api/users/account', {
+                method: 'DELETE',
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to delete account');
+            }
+
+            // Account deleted successfully, logout and redirect
+            await fetch('/api/logout', { method: 'POST' });
+            router.push('/login?deleted=true');
+            
+        } catch (err) {
+            console.error('Delete account error:', err);
+            setDeleteError(err instanceof Error ? err.message : "Failed to delete account");
+            setIsDeleting(false);
         }
     };
 
@@ -155,56 +185,64 @@ function ProfilePage() {
                     {/* Avatar */}
                     <div className="flex-shrink-0">
                         {profile.avatar ? (
-                            <img
-                                src={profile.avatar}
+                            <img 
+                                src={profile.avatar} 
                                 alt={profile.username}
-                                className="w-24 h-24 rounded-full object-cover border-4 border-gray-200"
+                                className="w-24 h-24 rounded-full object-cover"
                             />
                         ) : (
-                            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center border-4 border-gray-200">
-                                <span className="text-2xl font-bold text-white">
-                                    {getAvatarInitials(profile?.username)}
+                            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                                <span className="text-3xl font-bold text-white">
+                                    {getAvatarInitials(profile.username)}
                                 </span>
                             </div>
                         )}
                     </div>
-                    
-                    {/* User Info */}
+
+                    {/* Profile Info */}
                     <div className="flex-1 text-center sm:text-left">
                         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                            {profile?.username || "User"}
+                            {profile.username}
                         </h1>
-                        <p className="text-gray-600 mb-3">{profile?.email || ""}</p>
+                        <p className="text-gray-600 mb-4">{profile.email}</p>
                         
-                        <div className="flex items-center justify-center sm:justify-start text-gray-500 text-sm mb-4">
-                            <Calendar className="w-4 h-4 mr-2" />
-                            <span>Member since {profile?.createdAt ? formatDate(profile.createdAt) : "Unknown"}</span>
+                        <div className="flex flex-wrap items-center justify-center sm:justify-start space-x-6 text-sm text-gray-500">
+                            <div className="flex items-center">
+                                <Calendar className="w-4 h-4 mr-2" />
+                                <span>Joined {formatDate(profile.createdAt)}</span>
+                            </div>
+                            <div className="flex items-center">
+                                <Heart className="w-4 h-4 mr-2" />
+                                <span>{favorites.length} Favorites</span>
+                            </div>
                         </div>
-                        
-                        {/* Logout Button */}
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-col space-y-2">
                         <button
                             onClick={handleLogout}
-                            className="flex items-center text-red-600 hover:text-red-800 text-sm font-medium"
+                            className="flex items-center justify-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
                         >
                             <LogOut className="w-4 h-4 mr-2" />
                             Logout
+                        </button>
+                        
+                        <button
+                            onClick={() => setShowDeleteModal(true)}
+                            className="flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                        >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete Account
                         </button>
                     </div>
                 </div>
             </div>
 
             {/* Favorites Section */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center">
-                        <Heart className="w-6 h-6 text-red-500 mr-3 fill-current" />
-                        <h2 className="text-2xl font-bold text-gray-900">My Favorites</h2>
-                    </div>
-                    <div className="text-sm text-gray-500">
-                        {favorites.length} {favorites.length === 1 ? 'favorite' : 'favorites'}
-                    </div>
-                </div>
-
+            <div className="bg-white rounded-lg shadow-sm p-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">My Favorites</h2>
+                
                 {favoritesLoading ? (
                     <div className="flex items-center justify-center py-12">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -212,20 +250,78 @@ function ProfilePage() {
                     </div>
                 ) : favorites.length === 0 ? (
                     <div className="text-center py-12">
-                        <Heart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                        <div className="text-gray-500 text-lg mb-2">No favorites yet</div>
-                        <p className="text-gray-400 text-sm">
-                            Start adding movies and shows to your favorites to see them here!
-                        </p>
+                        <Heart className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                        <p className="text-gray-500 text-lg">No favorites yet</p>
+                        <p className="text-gray-400 mt-2">Start adding movies and shows to your favorites!</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
                         {favorites.map((movie) => (
-                            <MovieCard key={`${movie.mediaType}-${movie.id}`} movie={movie} />
+                            <MovieCard key={movie.id} movie={movie} />
                         ))}
                     </div>
                 )}
             </div>
+
+            {/* Delete Account Confirmation Modal */}
+            {showDeleteModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-lg max-w-md w-full p-6">
+                        <div className="flex items-center mb-4">
+                            <AlertTriangle className="w-6 h-6 text-red-600 mr-2" />
+                            <h3 className="text-xl font-bold text-gray-900">Delete Account</h3>
+                        </div>
+                        
+                        <div className="mb-6">
+                            <p className="text-gray-700 mb-4">
+                                This action cannot be undone. This will permanently delete your account and remove all your data including:
+                            </p>
+                            <ul className="list-disc list-inside text-gray-600 space-y-1 mb-4">
+                                <li>Your watchlist and tracking history</li>
+                                <li>All your reviews and ratings</li>
+                                <li>Your favorites and preferences</li>
+                                <li>Your profile information</li>
+                            </ul>
+                            <p className="text-gray-700 font-semibold mb-2">
+                                Please type <span className="text-red-600">{profile.username}</span> to confirm:
+                            </p>
+                            <input
+                                type="text"
+                                value={deleteConfirmation}
+                                onChange={(e) => setDeleteConfirmation(e.target.value)}
+                                placeholder="Type your username"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                                disabled={isDeleting}
+                            />
+                            
+                            {deleteError && (
+                                <p className="text-red-600 text-sm mt-2">{deleteError}</p>
+                            )}
+                        </div>
+
+                        <div className="flex space-x-3">
+                            <button
+                                onClick={() => {
+                                    setShowDeleteModal(false);
+                                    setDeleteConfirmation("");
+                                    setDeleteError(null);
+                                }}
+                                disabled={isDeleting}
+                                className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleDeleteAccount}
+                                disabled={isDeleting || deleteConfirmation !== profile.username}
+                                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isDeleting ? 'Deleting...' : 'Delete Account'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
