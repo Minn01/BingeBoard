@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { Filter, Loader2 } from 'lucide-react';
 import Movie from '../types/Movie';
 import MovieCard from './MovieCard';
+import { set } from 'mongoose';
 
 type BrowseClientProps = {
   initialData: {
@@ -108,7 +109,12 @@ export default function BrowseClient({ initialData }: BrowseClientProps) {
         }
 
         const res = await fetch(apiUrl);
-        if (!res.ok) throw new Error("Failed to fetch search results");
+        if (!res.ok) {
+          console.log('Fetch error:', res.statusText);
+          setLoading(false);
+          return;
+        } 
+
         response = await res.json();
 
         // Transform search results to Movie objects
@@ -142,7 +148,11 @@ export default function BrowseClient({ initialData }: BrowseClientProps) {
         }
 
         const res = await fetch(apiUrl);
-        if (!res.ok) throw new Error("Failed to fetch movies");
+        if (!res.ok) { 
+          console.log('Fetch error:', res.statusText);
+          setLoading(false);
+          return;
+        }
         response = await res.json();
 
         // Transform results to Movie objects

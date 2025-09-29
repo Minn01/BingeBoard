@@ -37,8 +37,8 @@ export async function POST(req: Request) {
     // Store JWT in cookie
     response.cookies.set("token", token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        path: process.env.NODE_ENV === "production" ? '/bingeboard' : '/',  // Ensure this matches your app's base path
+        secure: process.env.ALLOW_HTTPS === 'true', // Set to true if using HTTPS
+        path: "/bingeboard",  // Change from "/" to "/bingeboard for development"
         maxAge: 60 * 60 * 24, // 1 day
     });
 

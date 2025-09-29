@@ -36,7 +36,9 @@ function LoginPage() {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'Login failed');
+                setErrorMessage(errorData.message || 'Login failed');
+                setIsLoading(false);
+                return;
             }
 
             const data = await response.json();

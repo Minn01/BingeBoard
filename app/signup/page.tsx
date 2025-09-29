@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, MonitorCheck } from 'lucide-react'
 import Link from "next/link";
+import { sign } from "crypto";
 
 function SignUpPage() {
     const [email, setEmail] = useState('');
@@ -41,7 +42,9 @@ function SignUpPage() {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.error || 'Signup failed');
+                setErrorMessage(errorData.message || 'Signup failed');
+                setIsLoading(false);
+                return;
             }
 
             const data = await response.json();

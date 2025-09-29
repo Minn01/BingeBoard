@@ -244,7 +244,7 @@ export default function MovieDetailsPage() {
                     router.push(`/login`);
                     return;
                 }
-                throw new Error(`HTTP error! status: ${response.status}`);
+                console.log(`HTTP error! status: ${response.status}`)
             }
 
             const result = await response.json();
