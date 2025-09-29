@@ -9,6 +9,7 @@ interface MovieCardProps {
 }
 
 function MovieCard({ movie, compact = false }: MovieCardProps) {
+    const router = useRouter();
     const handleSetFavorite = async (movie: Movie) => {
         try {
             const response = await fetch('/api/interactions/set_favorite', {
@@ -26,7 +27,7 @@ function MovieCard({ movie, compact = false }: MovieCardProps) {
             if (!response.ok) {
                 if (response.status === 401) {
                     // Redirect to login or show auth modal
-                    window.location.href = '/login';
+                    router.push('/login');
                     return;
                 }
 
@@ -43,7 +44,6 @@ function MovieCard({ movie, compact = false }: MovieCardProps) {
 
         }
     }
-    const router = useRouter();
 
     const handleViewDetails = () => {
         router.push(`/details/${movie.mediaType}/${movie.id}`)

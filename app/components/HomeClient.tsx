@@ -46,7 +46,7 @@ export default function HomeClient({ trending, popularMovies, popularTvShows, to
             if (!response.ok) {
                 if (response.status === 401) {
                     // Redirect to login or show auth modal
-                    window.location.href = '/login';
+                    router.push('/login');
                     return;
                 }
 

@@ -243,7 +243,7 @@ export default function MovieDetailsPage() {
 
                 if (response.status === 401) {
                     // Redirect to login or show auth modal
-                    window.location.href = '/login';
+                    router.push('/login');
                     return;
                 }
 

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, MonitorCheck } from 'lucide-react'
+import Link from 'next/link';
 
 function LoginPage() {
     const [email, setEmail] = useState('');
@@ -151,12 +152,12 @@ function LoginPage() {
                         <div className="mt-8 text-center">
                             <p className="text-sm text-white/80">
                                 Don't have an account?{' '}
-                                <a
+                                <Link
                                     href="/signup"
                                     className="text-white font-semibold hover:text-white/80 transition-colors underline underline-offset-2"
                                 >
                                     Create Account
-                                </a>
+                                </Link>
                             </p>
                         </div>
                     </div>

@@ -25,7 +25,7 @@ function LogoutButton(
                     setIsNavigating(false);
                     setIsSuccessful(true);
                     // Redirect to login page on successful logout
-                    window.location.href = '/login';
+                    
                 } else {
                     window.alert("an error occurred during calling logout endpoint");
                 }
