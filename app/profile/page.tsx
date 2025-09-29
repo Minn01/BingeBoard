@@ -33,7 +33,8 @@ function ProfilePage() {
             setError(null);
             
             try {
-                const profileRes = await fetch("/api/me");
+                // Fetch user profile using your existing /api/me endpoint
+                const profileRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/api/me`);
                 
                 if (profileRes.status === 401) {
                     router.push('/login');
@@ -56,7 +57,7 @@ function ProfilePage() {
 
                 // Fetch favorites
                 setFavoritesLoading(true);
-                const favoritesRes = await fetch("/api/favorites");
+                const favoritesRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/api/favorites`);
                 
                 if (favoritesRes.status === 401) {
                     router.push('/login');
@@ -103,7 +104,7 @@ function ProfilePage() {
 
     const handleLogout = async () => {
         try {
-            await fetch('/api/logout', { method: 'POST' });
+            await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/api/logout`, { method: 'POST' });
             router.push('/login');
         } catch (err) {
             console.error('Logout error:', err);

@@ -97,12 +97,14 @@ export default function BrowseClient({ initialData }: BrowseClientProps) {
         // SEARCH MODE: Use search endpoints
         setIsSearchMode(true);
 
+        // Calling different endpoints based on content type
+        let apiUrl = `${process.env.NEXT_PUBLIC_BASE_PATH}/api/search`;
         if (contentType === 'movie') {
-          apiUrl = `/api/search/movies?query=${encodeURIComponent(search)}&page=${page}`;
+          apiUrl = `${apiUrl}/movies?query=${encodeURIComponent(search)}&page=${page}`;
         } else if (contentType === 'tv') {
-          apiUrl = `/api/search/tv?query=${encodeURIComponent(search)}&page=${page}`;
+          apiUrl = `${apiUrl}/tv?query=${encodeURIComponent(search)}&page=${page}`;
         } else {
-          apiUrl = `/api/search/multi?query=${encodeURIComponent(search)}&page=${page}`;
+          apiUrl = `${apiUrl}/multi?query=${encodeURIComponent(search)}&page=${page}`;
         }
 
         const res = await fetch(apiUrl);

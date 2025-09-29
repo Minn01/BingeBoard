@@ -12,7 +12,7 @@ function MovieCard({ movie, compact = false }: MovieCardProps) {
     const router = useRouter();
     const handleSetFavorite = async (movie: Movie) => {
         try {
-            const response = await fetch('/api/interactions/set_favorite', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/api/interactions/set_favorite`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -26,7 +26,6 @@ function MovieCard({ movie, compact = false }: MovieCardProps) {
 
             if (!response.ok) {
                 if (response.status === 401) {
-                    // Redirect to login or show auth modal
                     router.push('/login');
                     return;
                 }

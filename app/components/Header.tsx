@@ -31,10 +31,10 @@ function Header() {
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const res = await fetch('/api/me');
+                const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/api/me`);
                 if (!res.ok) {
-                    console.log('Not logged in');
                     router.push('/login');
+                    console.log('Not logged in');
                 }
                 const data = await res.json();
                 setUser(data.user);
@@ -48,13 +48,13 @@ function Header() {
     // Update current page based on pathname
     useEffect(() => {
         setIsNavigating(false);
-        if (pathname === '/') {
+        if (pathname === `${process.env.NEXT_PUBLIC_BASE_PATH}/` || pathname === '/') {
             setCurrentPage('dashboard');
-        } else if (pathname === '/browse') {
+        } else if (pathname === `${process.env.NEXT_PUBLIC_BASE_PATH}/browse` || pathname === '/browse') {
             setCurrentPage('browse');
-        } else if (pathname === '/my-list') {
+        } else if (pathname === `${process.env.NEXT_PUBLIC_BASE_PATH}/my-list` || pathname === '/my-list') {
             setCurrentPage('my-list');
-        } else if (pathname === 'profile') {
+        } else if (pathname === `${process.env.NEXT_PUBLIC_BASE_PATH}/profile` || pathname === 'profile') {
             setCurrentPage('/profile');
         }
     }, [pathname]);
@@ -69,7 +69,7 @@ function Header() {
             setSearchLoading(true);
             searchTimeoutRef.current = setTimeout(async () => {
                 try {
-                    const res = await fetch(`/api/search/multi?query=${encodeURIComponent(searchQuery)}&page=1`);
+                    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/api/search/multi?query=${encodeURIComponent(searchQuery)}&page=1`);
                     const data = await res.json();
 
                     const results = (data.results || [])
@@ -128,7 +128,6 @@ function Header() {
         setIsNavigating(true);
         setShowSearchResults(false);
         setSearchQuery('');
-        // Fixed: Use router.push directly instead of moveTo
         router.push(`/details/${movie.media_type}/${movie.id}`);
     };
 
@@ -142,7 +141,6 @@ function Header() {
         e.preventDefault();
         if (searchQuery.trim()) {
             setIsNavigating(true);
-            // Navigate to browse page with search query
             router.push(`/browse?search=${encodeURIComponent(searchQuery.trim())}`);
             setShowSearchResults(false);
             setSearchQuery(''); // Clear the search query after navigation
