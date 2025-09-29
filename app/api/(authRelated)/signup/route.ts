@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     response.cookies.set("token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        path: "/",
+        path: process.env.NODE_ENV === "production" ? '/bingeboard' : '/',  // Ensure this matches your app's base path
         maxAge: 60 * 60 * 24, // 1 day
     });
 

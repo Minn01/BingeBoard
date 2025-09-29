@@ -32,11 +32,11 @@ export async function POST(req: Request) {
 
     const response = NextResponse.json({ message: "Logged in!", token });
 
-    // Store JWT in cookie
+    // Store JWT in cookie with basePath
     response.cookies.set("token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        path: "/",
+        path: process.env.NODE_ENV === "production" ? '/bingeboard' : '/',  // Changed from "/" to "/bingeboard"
         maxAge: 60 * 60 * 24,
     });
 

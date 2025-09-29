@@ -7,7 +7,7 @@ export async function POST() {
   response.cookies.set("token", "", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    path: "/",
+    path: process.env.NODE_ENV === "production" ? '/bingeboard' : '/', // Ensure this matches the login path
     maxAge: 0, // Expire the cookie immediately
   });
 
