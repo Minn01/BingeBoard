@@ -45,8 +45,7 @@ export default function HomeClient({ trending, popularMovies, popularTvShows, to
 
             if (!response.ok) {
                 if (response.status === 401) {
-                    // Redirect to login or show auth modal
-                    router.push(`${process.env.NEXT_PUBLIC_BASE_PATH}/login`);
+                    router.push('/login');
                     return;
                 }
 
@@ -97,14 +96,14 @@ export default function HomeClient({ trending, popularMovies, popularTvShows, to
 
     const navigateToWatchlist = (status?: string) => {
         if (status) {
-            router.push(`${process.env.NEXT_PUBLIC_BASE_PATH}/my-list?status=${status.toLowerCase().replace(/ /g, '_')}`);
+            router.push(`/my-list?status=${status.toLowerCase().replace(/ /g, '_')}`);
         } else {
-            router.push(`${process.env.NEXT_PUBLIC_BASE_PATH}/my-list`);
+            router.push('/my-list');
         }
     };
 
     const navigateToProfile = () => {
-        router.push(`${process.env.NEXT_PUBLIC_BASE_PATH}/profile`);
+        router.push('/profile');
     };
 
     return (

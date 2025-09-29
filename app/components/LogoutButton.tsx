@@ -26,7 +26,7 @@ function LogoutButton(
                 if (res.ok) {
                     setIsNavigating(false);
                     setIsSuccessful(true);
-                    router.push(`${process.env.NEXT_PUBLIC_BASE_PATH}/login`);
+                    router.push('/login');
                 } else {
                     window.alert("an error occurred during calling logout endpoint");
                 }

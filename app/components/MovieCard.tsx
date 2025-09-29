@@ -26,8 +26,7 @@ function MovieCard({ movie, compact = false }: MovieCardProps) {
 
             if (!response.ok) {
                 if (response.status === 401) {
-                    // Redirect to login or show auth modal
-                    router.push(`${process.env.NEXT_PUBLIC_BASE_PATH}/login`);
+                    router.push('/login');
                     return;
                 }
 
@@ -46,7 +45,7 @@ function MovieCard({ movie, compact = false }: MovieCardProps) {
     }
 
     const handleViewDetails = () => {
-        router.push(`${process.env.NEXT_PUBLIC_BASE_PATH}/details/${movie.mediaType}/${movie.id}`)
+        router.push(`/details/${movie.mediaType}/${movie.id}`)
     }
 
     const year = movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A';

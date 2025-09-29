@@ -241,7 +241,7 @@ export default function MovieDetailsPage() {
                 setIsFavorite(!newFavoriteStatus);
 
                 if (response.status === 401) {
-                    router.push(`${process.env.NEXT_PUBLIC_BASE_PATH}/login`);
+                    router.push(`/login`);
                     return;
                 }
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -352,7 +352,7 @@ export default function MovieDetailsPage() {
     };
 
     const handleViewDetails = (contentId: number, contentMedia: 'movie' | 'tv') => {
-        router.push(`${process.env.NEXT_PUBLIC_BASE_PATH}/details/${contentMedia}/${contentId}`);
+        router.push(`/details/${contentMedia}/${contentId}`);
     };
 
     if (loading) return <p className="text-center mt-10">Loading...</p>;

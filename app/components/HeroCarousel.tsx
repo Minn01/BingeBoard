@@ -26,7 +26,7 @@ function HeroCarousel({
     const router = useRouter();
 
     const handleViewDetail = (movie: Movie) => {
-        router.push(`${process.env.NEXT_PUBLIC_BASE_PATH}/details/${movie.mediaType}/${movie.id}`)
+        router.push(`/details/${movie.mediaType}/${movie.id}`)
     }
 
     useEffect(() => {

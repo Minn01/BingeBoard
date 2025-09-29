@@ -33,7 +33,7 @@ function Header() {
             try {
                 const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/api/me`);
                 if (!res.ok) {
-                    router.push(`${process.env.NEXT_PUBLIC_BASE_PATH}/login`);
+                    router.push('/login');
                     console.log('Not logged in');
                 }
                 const data = await res.json();
@@ -121,14 +121,14 @@ function Header() {
     const moveTo = (page: string) => {
         setCurrentPage(page);
         setIsNavigating(true);
-        router.push(`${process.env.NEXT_PUBLIC_BASE_PATH}/` + (page === 'dashboard' ? '' : page));
+        router.push('/' + (page === 'dashboard' ? '' : page));
     }
 
     const handleSearchItemClick = (movie: SearchResult) => {
         setIsNavigating(true);
         setShowSearchResults(false);
         setSearchQuery('');
-        router.push(`${process.env.NEXT_PUBLIC_BASE_PATH}/details/${movie.media_type}/${movie.id}`);
+        router.push(`/details/${movie.media_type}/${movie.id}`);
     };
 
     const clearSearch = () => {
@@ -141,7 +141,7 @@ function Header() {
         e.preventDefault();
         if (searchQuery.trim()) {
             setIsNavigating(true);
-            router.push(`${process.env.NEXT_PUBLIC_BASE_PATH}/browse?search=${encodeURIComponent(searchQuery.trim())}`);
+            router.push(`/browse?search=${encodeURIComponent(searchQuery.trim())}`);
             setShowSearchResults(false);
             setSearchQuery(''); // Clear the search query after navigation
         }

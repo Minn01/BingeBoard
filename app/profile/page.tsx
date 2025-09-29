@@ -32,7 +32,7 @@ function ProfilePage() {
                 
                 if (profileRes.status === 401) {
                     // User not authenticated, redirect to login
-                    router.push(`${process.env.NEXT_PUBLIC_BASE_PATH}/login`);
+                    router.push('/login');
                     return;
                 }
                 
@@ -57,7 +57,7 @@ function ProfilePage() {
                 const favoritesRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/api/favorites`);
                 
                 if (favoritesRes.status === 401) {
-                    router.push(`${process.env.NEXT_PUBLIC_BASE_PATH}/login`);
+                    router.push('/login');
                     return;
                 }
                 
@@ -106,7 +106,7 @@ function ProfilePage() {
     const handleLogout = async () => {
         try {
             await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/api/logout`, { method: 'POST' });
-            router.push(`${process.env.NEXT_PUBLIC_BASE_PATH}/login`);
+            router.push('/login');
         } catch (err) {
             console.error('Logout error:', err);
         }

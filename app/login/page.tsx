@@ -53,7 +53,7 @@ function LoginPage() {
             setIsLoading(false);
 
             // Redirect to dashboard
-            router.push(`${process.env.NEXT_PUBLIC_BASE_PATH}/`);
+            router.push(`/`);
 
         } catch (error: any) {
             console.error('Login error:', error);
