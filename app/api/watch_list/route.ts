@@ -14,9 +14,14 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Query interactions only for this user
-    const interactions = await UserMovieInteraction.find({ userId: user._id })
-      .populate("userId", "username");
+    // Query interactions for this user that have a valid status
+    // This excludes items that are ONLY marked as favorites without a status
+    const interactions = await UserMovieInteraction.find({ 
+      userId: user._id,
+      status: { $exists: true, $ne: null } // Only items with a status
+    }).populate("userId", "username");
+
+    console.log(`Found ${interactions.length} watchlist items for user ${user._id}`);
 
     // Fetch TMDB details for each interaction
     const results = await Promise.all(
@@ -27,7 +32,7 @@ export async function GET(req: NextRequest) {
           );
 
           if (!res.ok) {
-            console.error(`Failed to fetch TMDB for ${item.tmdbId}`);
+            console.error(`Failed to fetch TMDB for ${item.tmdbId}: ${res.status}`);
             return null;
           }
 
@@ -37,6 +42,7 @@ export async function GET(req: NextRequest) {
             id: details.id,
             title: details.title || details.name,
             poster_path: details.poster_path,
+            backdrop_path: details.backdrop_path,
             release_date: details.release_date || details.first_air_date,
             vote_average: details.vote_average,
             genre_ids: details.genre_ids || [],
@@ -53,6 +59,7 @@ export async function GET(req: NextRequest) {
             episodesWatched: item.episodesWatched,
             totalEpisodes: details.number_of_episodes || undefined,
             totalSeasons: details.number_of_seasons || undefined,
+            isFavorite: item.isFavorite || false, // Include favorite status
           };
         } catch (error) {
           console.error(`Error processing item ${item.tmdbId}:`, error);
@@ -62,11 +69,17 @@ export async function GET(req: NextRequest) {
     );
 
     const validResults = results.filter(Boolean);
+    console.log(`Returning ${validResults.length} valid watchlist items`);
+    
     return NextResponse.json(validResults, { status: 200 });
   } catch (err) {
     console.error("Error fetching watchlist:", err);
+    const errorMessage = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { 
+        error: "Internal Server Error",
+        details: errorMessage 
+      },
       { status: 500 }
     );
   }

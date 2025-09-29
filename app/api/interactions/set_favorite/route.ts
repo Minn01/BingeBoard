@@ -68,6 +68,7 @@ export async function PUT(req: NextRequest) {
                 tmdbId: tmdbId,
                 mediaType: mediaType,
                 isFavorite: isFavorite,
+                status: 'want_to_watch', 
                 dateAdded: new Date(),
                 lastUpdated: new Date()
             });

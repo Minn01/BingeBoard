@@ -32,7 +32,10 @@ function Header() {
         const fetchUser = async () => {
             try {
                 const res = await fetch('/api/me');
-                if (!res.ok) throw new Error('Not logged in');
+                if (!res.ok) {
+                    console.log('Not logged in');
+                    router.push('/login');
+                }
                 const data = await res.json();
                 setUser(data.user);
             } catch (err) {

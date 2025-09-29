@@ -1,44 +1,52 @@
-'use client'
+'use client';
 
-import { Filter, Loader2 } from "lucide-react"
-import MovieCard from "../components/MovieCard"
-import Movie from "../types/Movie"
-import { useState, useEffect, useCallback, Suspense } from "react"
-import PageLoader from "./PageLoader"
-import { useSearchParams } from "next/navigation"
-import BrowseClientProps from "../types/BrowseClientProps"
+import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { Filter, Loader2 } from 'lucide-react';
+import Movie from '../types/Movie';
+import MovieCard from './MovieCard';
 
+type BrowseClientProps = {
+  initialData: {
+    trending: Movie[];
+    popularMovies: Movie[];
+    popularTVShows: Movie[];
+    totalPages: {
+      trending: number;
+      movies: number;
+      tv: number;
+    };
+  };
+};
 
-// Main Browse Client Component
 export default function BrowseClient({ initialData }: BrowseClientProps) {
   const searchParams = useSearchParams();
-  const [movies, setMovies] = useState<Movie[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [movies, setMovies] = useState<Movie[]>(initialData.trending);
   const [contentType, setContentType] = useState<'all' | 'movie' | 'tv'>('all');
   const [sortBy, setSortBy] = useState<'popularity' | 'rating' | 'release_date' | 'title'>('popularity');
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [isSearchMode, setIsSearchMode] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(initialData.totalPages.trending);
 
-  // Helper function to sort movies
-  const sortMovies = useCallback((moviesArray: Movie[], sortType: string): Movie[] => {
-    return [...moviesArray].sort((a, b) => {
+  // Sort movies helper
+  const sortMovies = useCallback((movieList: Movie[], sortType: typeof sortBy) => {
+    return [...movieList].sort((a, b) => {
       switch (sortType) {
-        case 'title':
-          return a.title.localeCompare(b.title);
         case 'rating':
           return b.vote_average - a.vote_average;
         case 'release_date':
-          return new Date(b.release_date || '').getTime() - new Date(a.release_date || '').getTime();
-        case 'popularity':
-        default:
-          return 0; // Keep original order (already sorted by popularity from API)
+          return new Date(b.release_date).getTime() - new Date(a.release_date).getTime();
+        case 'title':
+          return a.title.localeCompare(b.title);
+        default: // popularity
+          return 0; // Keep API order
       }
     });
   }, []);
 
-  // Initialize search query from URL parameters
+  // Initialize search from URL
   useEffect(() => {
     const urlSearchQuery = searchParams.get('search');
     if (urlSearchQuery) {
@@ -83,12 +91,12 @@ export default function BrowseClient({ initialData }: BrowseClientProps) {
     setLoading(true);
     try {
       let response;
+      let apiUrl = '';
 
       if (search.trim()) {
+        // SEARCH MODE: Use search endpoints
         setIsSearchMode(true);
 
-        // Calling different endpoints based on content type
-        let apiUrl = `/api/search`;
         if (contentType === 'movie') {
           apiUrl = `/api/search/movies?query=${encodeURIComponent(search)}&page=${page}`;
         } else if (contentType === 'tv') {
@@ -120,8 +128,39 @@ export default function BrowseClient({ initialData }: BrowseClientProps) {
         setMovies(sortedMovies);
         setTotalPages(response.total_pages || 1);
       } else {
-        // When no search query, fall back to initial data
+        // BROWSE MODE: Use browse endpoints for pagination
         setIsSearchMode(false);
+
+        if (contentType === 'movie') {
+          apiUrl = `${process.env.NEXT_PUBLIC_BASE_PATH}/api/movies/popular?page=${page}`;
+        } else if (contentType === 'tv') {
+          apiUrl = `${process.env.NEXT_PUBLIC_BASE_PATH}/api/tv/popular?page=${page}`;
+        } else {
+          apiUrl = `${process.env.NEXT_PUBLIC_BASE_PATH}/api/movies/trending?page=${page}`;
+        }
+
+        const res = await fetch(apiUrl);
+        if (!res.ok) throw new Error("Failed to fetch movies");
+        response = await res.json();
+
+        // Transform results to Movie objects
+        const fetchedMovies = (response.results || [])
+          .filter((item: any) => item.media_type !== 'person')
+          .map((item: any) => ({
+            id: item.id,
+            title: item.title || item.name || 'Unknown Title',
+            poster_path: item.poster_path,
+            backdrop_path: item.backdrop_path,
+            release_date: item.release_date || item.first_air_date || '',
+            vote_average: item.vote_average || 0,
+            genre_ids: item.genre_ids || [],
+            overview: item.overview || '',
+            mediaType: item.media_type || contentType === 'tv' ? 'tv' : 'movie',
+          }));
+
+        const sortedMovies = sortMovies(fetchedMovies, sortBy);
+        setMovies(sortedMovies);
+        setTotalPages(response.total_pages || 1);
       }
     } catch (error) {
       console.error("Error fetching movies:", error);
@@ -161,12 +200,21 @@ export default function BrowseClient({ initialData }: BrowseClientProps) {
     }
   }, [searchParams, searchQuery, fetchMovies]);
 
-  // Handle page changes
+  // Handle page changes - THIS IS THE KEY FIX
   useEffect(() => {
-    if (currentPage > 1) {
+    if (currentPage > 1 || (!isSearchMode && currentPage === 1)) {
+      // Fetch new page for both search and browse modes
       fetchMovies(currentPage, searchQuery);
     }
-  }, [currentPage, fetchMovies, searchQuery]);
+  }, [currentPage]);
+
+  // Handle content type changes
+  useEffect(() => {
+    setCurrentPage(1);
+    if (!isSearchMode) {
+      fetchMovies(1, '');
+    }
+  }, [contentType]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -198,10 +246,11 @@ export default function BrowseClient({ initialData }: BrowseClientProps) {
             <button
               key={page}
               onClick={() => handlePageChange(page)}
-              className={`px-3 py-2 text-sm rounded ${page === currentPage
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-500 hover:text-gray-700'
-                }`}
+              className={`px-3 py-2 text-sm rounded ${
+                page === currentPage
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+              }`}
             >
               {page}
             </button>
@@ -220,70 +269,51 @@ export default function BrowseClient({ initialData }: BrowseClientProps) {
   };
 
   return (
-    <Suspense fallback={<PageLoader />}>
+    <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex gap-8">
-          {/* Filters Sidebar */}
-          <div className="w-64 flex-shrink-0">
-            <div className="bg-white rounded-lg shadow p-6 sticky top-24">
-              <h3 className="font-bold text-gray-900 mb-4 flex items-center">
-                <Filter className="w-4 h-4 mr-2" />
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">Browse Content</h1>
+
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Sidebar Filters */}
+          <div className="lg:w-64 flex-shrink-0">
+            <div className="bg-white rounded-lg shadow-md p-6 sticky top-8">
+              <h3 className="text-lg font-semibold mb-4 flex items-center">
+                <Filter className="w-5 h-5 mr-2" />
                 Filters
               </h3>
 
-              {/* Search Input */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search movies & shows..."
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Content Type
+                  </label>
+                  <select
+                    value={contentType}
+                    onChange={(e) => setContentType(e.target.value as any)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="all">All (Trending)</option>
+                    <option value="movie">Movies</option>
+                    <option value="tv">TV Shows</option>
+                  </select>
+                </div>
 
-              {/* Content Type Filter */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
-                <select
-                  value={contentType}
-                  onChange={(e) => setContentType(e.target.value as 'all' | 'movie' | 'tv')}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="all">All</option>
-                  <option value="movie">Movies</option>
-                  <option value="tv">TV Shows</option>
-                </select>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Sort By
+                  </label>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as any)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="popularity">Popularity</option>
+                    <option value="rating">Rating</option>
+                    <option value="release_date">Release Date</option>
+                    <option value="title">Title</option>
+                  </select>
+                </div>
               </div>
-
-              {/* Sort Options */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as any)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="popularity">Popularity</option>
-                  <option value="rating">Rating</option>
-                  <option value="release_date">Release Date</option>
-                  <option value="title">Title</option>
-                </select>
-              </div>
-
-              <button
-                onClick={() => {
-                  if (searchQuery.trim()) {
-                    setCurrentPage(1);
-                    fetchMovies(1, searchQuery);
-                  }
-                }}
-                disabled={!searchQuery.trim()}
-                className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-              >
-                Apply Filters
-              </button>
             </div>
           </div>
 
@@ -326,18 +356,17 @@ export default function BrowseClient({ initialData }: BrowseClientProps) {
                     <p className="text-gray-600 text-center">
                       {searchQuery
                         ? `No movies or TV shows found for "${searchQuery}". Try adjusting your search terms.`
-                        : 'No content available for the selected filters. Try changing your filter options.'
-                      }
+                        : 'No content available for the selected filters.'}
                     </p>
                   </div>
                 )}
 
-                {movies.length > 0 && totalPages > 1 && renderPagination()}
+                {movies.length > 0 && renderPagination()}
               </>
             )}
           </div>
         </div>
       </div>
-    </Suspense>
+    </div>
   );
 }
