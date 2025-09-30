@@ -122,7 +122,7 @@ function ProfilePage() {
         setDeleteError(null);
 
         try {
-            const response = await fetch('/api/users/account', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/api/users/account`, {
                 method: 'DELETE',
             });
 
@@ -133,7 +133,7 @@ function ProfilePage() {
             }
 
             // Account deleted successfully, logout and redirect
-            await fetch('/api/logout', { method: 'POST' });
+            await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/api/logout`, { method: 'POST' });
             router.push('/login?deleted=true');
             
         } catch (err) {
