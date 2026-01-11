@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import User from "@/models/User";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import connect from "@/lib/mongoose";
 import jwt from "jsonwebtoken";
 
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     response.cookies.set("token", token, {
         httpOnly: true,
         secure: process.env.ALLOW_HTTPS === 'true', // Set to true if using HTTPS
-        path: "/bingeboard",  // Change from "/" to "/bingeboard for development"
+        path: `${process.env.NEXT_PUBLIC_BASE_PATH}/`,  // Change from "/" to "/bingeboard for development"
         maxAge: 60 * 60 * 24, // 1 day
     });
 

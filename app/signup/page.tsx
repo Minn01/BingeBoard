@@ -1,9 +1,9 @@
 'use client';
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from 'next/image';
 import { Loader2, MonitorCheck } from 'lucide-react'
 import Link from "next/link";
-import { sign } from "crypto";
 
 function SignUpPage() {
     const [email, setEmail] = useState('');
@@ -21,14 +21,17 @@ function SignUpPage() {
         // Basic validation
         if (!email || !username || !password) {
             setErrorMessage("All fields are required");
+            setIsLoading(false);
             return;
         }
         if (!/\S+@\S+\.\S+/.test(email)) {
             setErrorMessage("Please enter a valid email address");
+            setIsLoading(false);
             return;
         }
         if (password.length < 6) {
             setErrorMessage("Password must be at least 6 characters");
+            setIsLoading(false);
             return;
         }
 
@@ -66,11 +69,26 @@ function SignUpPage() {
         } catch (error: any) {
             console.error('Signup error:', error);
             setErrorMessage(error.message || 'An error occurred during signup');
+            setIsLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen login-bg flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="relative min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 overflow-hidden">
+            {/* Background Image */}
+            <Image
+                src="/login_bg.jpg"
+                alt="Background"
+                fill
+                priority
+                quality={100}
+                className="object-cover"
+                sizes="100vw"
+            />
+
+            {/* Dark Overlay with Blur */}
+            <div className="absolute inset-0 bg-white/50 backdrop-blur-xl z-[1]" />
+
             {/* Loading Modal */}
             {isLoading && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center">
@@ -85,13 +103,14 @@ function SignUpPage() {
             {isSuccessful && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center">
                     <div className="bg-white rounded-lg p-6 shadow-xl flex flex-col items-center space-y-4">
-                        <MonitorCheck />
+                        <MonitorCheck className="h-8 w-8 text-green-600" />
                         <p className="text-gray-700 font-medium">Account Created! Welcome!</p>
                     </div>
                 </div>
             )}
 
-            <div className="login-content">
+            {/* Content */}
+            <div className="relative z-10">
                 {/* Logo/Title */}
                 <div className="text-center mb-8">
                     <h1 className="text-5xl font-bold text-white mb-3 drop-shadow-lg">
@@ -104,7 +123,7 @@ function SignUpPage() {
 
                 {/* Glass Signup Box */}
                 <div className="sm:mx-auto sm:w-full sm:max-w-md">
-                    <div className="glass-login-box p-8">
+                    <div className="bg-gray/50 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl p-8 border-rounded-lg">
                         <h2 className="text-3xl font-bold text-white mb-8 text-center drop-shadow-md">
                             Create Account
                         </h2>
@@ -112,12 +131,12 @@ function SignUpPage() {
                         <div className="space-y-6">
                             {/* Email Field */}
                             <div>
-                                <label className="block text-sm glass-label mb-2">
+                                <label className="block text-sm font-medium text-white/90 mb-2">
                                     Email Address
                                 </label>
                                 <input
                                     type="email"
-                                    className="w-full glass-input px-4 py-3 text-white placeholder-white/70"
+                                    className="w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all"
                                     placeholder="Enter your email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
@@ -126,12 +145,12 @@ function SignUpPage() {
 
                             {/* Username Field */}
                             <div>
-                                <label className="block text-sm glass-label mb-2">
+                                <label className="block text-sm font-medium text-white/90 mb-2">
                                     Username
                                 </label>
                                 <input
                                     type="text"
-                                    className="w-full glass-input px-4 py-3 text-white placeholder-white/70"
+                                    className="w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all"
                                     placeholder="Choose a username"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
@@ -140,12 +159,12 @@ function SignUpPage() {
 
                             {/* Password Field */}
                             <div>
-                                <label className="block text-sm glass-label mb-2">
+                                <label className="block text-sm font-medium text-white/90 mb-2">
                                     Password
                                 </label>
                                 <input
                                     type="password"
-                                    className="w-full glass-input px-4 py-3 text-white placeholder-white/70"
+                                    className="w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all"
                                     placeholder="Enter your password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
@@ -157,13 +176,13 @@ function SignUpPage() {
                                 <button
                                     type="button"
                                     onClick={handleSignup}
-                                    className="w-full glass-button py-3 px-4 text-white font-semibold"
+                                    className="w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/20 rounded-lg py-3 px-4 text-white font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
                                 >
                                     Create Account
                                 </button>
 
                                 {errorMessage && (
-                                    <p className="text-red-300 text-sm mt-3 bg-red-500/20 px-3 py-2 rounded-md backdrop-blur-sm">
+                                    <p className="text-red-300 text-sm mt-3 bg-red-500/20 px-3 py-2 rounded-md backdrop-blur-sm border border-red-400/30">
                                         {errorMessage}
                                     </p>
                                 )}

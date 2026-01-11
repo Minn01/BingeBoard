@@ -231,32 +231,6 @@ html {
   background-color: #003087;
 }
 
-
-.login-bg {
-  background-image: url('/bingeboard/login_bg.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  position: relative;
-  min-height: 100vh;
-  background-color: #1a1a1a;
-}
-
-/* Enhanced blur overlay for background */
-.login-bg::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  backdrop-filter: blur(12px) brightness(0.7);
-  -webkit-backdrop-filter: blur(12px) brightness(0.7);
-  background: rgba(0, 0, 0, 0.4); 
-  z-index: 1;
-}
-
 .login-content {
   position: relative;
   z-index: 2;
@@ -389,7 +363,7 @@ html {
   );
 }
 
-/* Alternative: PlayStation themed background */
+/* Alternative: PlayStation themed backgroud */
 .login-bg-playstation {
   background: linear-gradient(135deg, 
     #003087 0%, 
